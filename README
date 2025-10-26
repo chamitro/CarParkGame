@@ -1,0 +1,134 @@
+# 🚗 Pixel Parking - Ultimate Edition
+
+A precision parking puzzle game with 50 challenging levels, 3 unique endings, and a mysterious story to unlock!
+
+## 🎮 [Play Now!](https://chamitro.github.io/CarParkGame/)
+
+---
+
+## 🎯 Game Features
+
+- **50 Unique Levels** across 6 different biomes
+- **3 Different Endings** based on your performance
+- **Dynamic Weather** - Rain, snow, fog, and clear skies
+- **Power-ups** - Shield, speed boost, time extension, and destruction gun
+- **Story Mode** - Unlock a mysterious narrative by playing perfectly
+- **Achievements** - 9 achievements to unlock
+- **Multiple Vehicle Types** - Cars, trucks, buses, and taxis
+- **Night Mode** - Special levels with headlight mechanics
+
+---
+
+## 🏆 Three Endings
+
+### 📊 Ending 1: The Completion Master
+Complete all 50 levels
+
+### 📖 Ending 2: The Perfectionist's Tale  
+Complete all 50 levels with 0-1 hits per level (unlocks full story)
+
+### 🪙 Ending 3: The Treasure Hunter
+Collect at least 84 coins out of 120 total (70% collection rate)
+
+**🐉 Secret Bonus:** Unlock all 3 endings to discover the Dragon!
+
+---
+
+## 🎮 Controls
+
+| Key | Action |
+|-----|--------|
+| **← →** | Steer left/right |
+| **↑** | Accelerate |
+| **↓** | Brake/Reverse |
+| **Space** | Park vehicle |
+| **C** | Use power-up |
+| **R** | Restart level |
+
+---
+
+## 💾 Save System
+
+Your progress is automatically saved in your browser's local storage. Progress includes:
+- Highest level reached
+- Achievements unlocked
+- Story progression
+- Coins collected
+- Personal leaderboard
+
+⚠️ **Note:** Progress is stored locally. Clearing browser cache will reset your save.
+
+---
+
+## 🛠️ Technical Details
+
+- Pure vanilla JavaScript (no frameworks)
+- HTML5 Canvas rendering
+- Responsive design
+- No external dependencies
+- ~5000 lines of code
+
+---
+
+## 📸 Screenshots
+
+*(Add screenshots here after uploading)*
+
+---
+
+## 🗺️ Roadmap
+
+### Version 1.1.0 (Planned)
+- [ ] 10 new bonus levels
+- [ ] Online leaderboard
+- [ ] New power-up: Time Freeze
+- [ ] Mobile touch controls
+
+---
+
+## ☕ Support Development
+
+Enjoying the game? Consider supporting future development!
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/YOURUSERNAME)
+
+---
+
+## 📜 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+---
+
+## 👨‍💻 Developer
+
+Created by **chamitro**
+
+- GitHub: [@chamitro](https://github.com/chamitro)
+- Ko-fi: [Support Me](https://ko-fi.com/YOURUSERNAME)
+
+---
+
+## 🎮 Play More Games
+
+Check out my other projects on my [GitHub profile](https://github.com/chamitro)!
+
+---
+
+**Version:** v1.0.0  
+**Last Updated:** January 2025  
+**Status:** ✅ Stable Release
+```
+
+---
+
+## 📋 **Quick Checklist:**
+```
+☐ Create repository "pixel-parking"
+☐ Upload pixel-parking-final.html as index.html
+☐ Enable GitHub Pages in Settings
+☐ Edit README.md with game description
+☐ Add your Ko-fi username to both README and game file
+☐ Wait 2 minutes for deployment
+☐ Visit https://chamitro.github.io/CarParkGame/
+☐ Share on social media!
