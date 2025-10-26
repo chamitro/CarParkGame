@@ -1,0 +1,5080 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Pixel Parking — Ultimate Edition</title>
+<style>
+  html,body{height:100%;margin:0;background:#0b0e13;color:#e7e7e7;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;overflow:auto}
+  .wrap{display:flex;gap:20px;align-items:flex-start;justify-content:center;padding:16px;max-width:1600px;margin:0 auto}
+  .game-container{display:flex;flex-direction:column;gap:16px}
+  canvas{border-radius:14px;overflow:hidden;box-shadow:0 18px 48px rgba(0,0,0,.55),inset 0 0 0 2px rgba(255,255,255,.04);border:4px solid #1b1f27;background:#0f1218}
+  .hud{width:440px;line-height:1.35;overflow-y:auto;max-height:calc(100vh - 32px)}
+  .hud h1{margin:0 0 6px;font-size:18px}
+  .kbd{padding:2px 6px;border:1px solid #38404e;background:#0f1218;border-radius:4px;font-family:ui-monospace,Menlo,monospace;font-size:11px}
+  .btn{display:inline-block;padding:8px 10px;background:#6a5acd;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;border:1px solid #4b3fb3;box-shadow:0 2px 0 #2d2570}
+  .muted{color:#cfd3da;opacity:.9}
+  .bar{height:12px;background:#1a1f29;border:1px solid #0f1218;border-radius:6px;box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
+  .bar>b{display:block;height:100%;width:0%;background:linear-gradient(90deg,#9be676,#ffd166,#ef476f);border-radius:6px;transition:width .2s ease}
+  .rule{padding:10px;border:1px solid #223;border-radius:8px;background:#0e121a}
+  #err{position:fixed;left:12px;bottom:12px;right:12px;background:#1a1f29;border:1px solid #3b4353;border-radius:10px;padding:10px 12px;font:13px ui-monospace,Menlo,monospace;display:none}
+  /* Custom scrollbar for webkit browsers */
+  .hud::-webkit-scrollbar, div[style*="overflow-y"]::-webkit-scrollbar {width:8px}
+  .hud::-webkit-scrollbar-track, div[style*="overflow-y"]::-webkit-scrollbar-track {background:#0e121a;border-radius:4px}
+  .hud::-webkit-scrollbar-thumb, div[style*="overflow-y"]::-webkit-scrollbar-thumb {background:#334;border-radius:4px}
+  .hud::-webkit-scrollbar-thumb:hover, div[style*="overflow-y"]::-webkit-scrollbar-thumb:hover {background:#445}
+  
+  /* START SCREEN STYLES */
+  #startScreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #0b0e13 0%, #1a1a2e 50%, #16213e 100%);
+    z-index: 1000;
+    overflow-y: auto;
+    animation: fadeIn 0.5s ease-in;
+    padding: 20px 0;
+  }
+  
+  #startScreen::-webkit-scrollbar {
+    width: 10px;
+  }
+  
+  #startScreen::-webkit-scrollbar-track {
+    background: #0e121a;
+  }
+  
+  #startScreen::-webkit-scrollbar-thumb {
+    background: #6a5acd;
+    border-radius: 5px;
+  }
+  
+  #startScreen::-webkit-scrollbar-thumb:hover {
+    background: #8a7aed;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  @keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
+  
+  .start-container {
+    max-width: 900px;
+    width: 90%;
+    padding: 40px;
+    background: rgba(15, 18, 24, 0.95);
+    border-radius: 20px;
+    border: 3px solid #6a5acd;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    margin: 20px auto;
+    display: block;
+  }
+  
+  .start-title {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+  
+  .start-title h1 {
+    font-size: 48px;
+    margin: 0 0 10px 0;
+    background: linear-gradient(135deg, #9be676, #ffd166, #6a5acd);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 4px 20px rgba(155, 230, 118, 0.3);
+  }
+  
+  .start-subtitle {
+    font-size: 16px;
+    color: #ffd166;
+    margin: 0;
+    font-weight: 600;
+  }
+  
+  .start-section {
+    margin-bottom: 30px;
+    padding: 20px;
+    background: rgba(26, 31, 41, 0.6);
+    border-radius: 12px;
+    border: 1px solid rgba(106, 90, 205, 0.3);
+  }
+  
+  .start-section h2 {
+    font-size: 22px;
+    margin: 0 0 15px 0;
+    color: #9be676;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .start-section h3 {
+    font-size: 18px;
+    margin: 20px 0 10px 0;
+    color: #ffd166;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .start-section p {
+    font-size: 15px;
+    line-height: 1.7;
+    color: #cfd3da;
+    margin: 10px 0;
+  }
+  
+  .story-text {
+    font-size: 16px;
+    line-height: 1.8;
+    color: #e7e7e7;
+    font-style: italic;
+    padding: 15px;
+    background: rgba(106, 90, 205, 0.1);
+    border-left: 4px solid #6a5acd;
+    border-radius: 8px;
+    margin: 15px 0;
+  }
+  
+  .controls-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin-top: 15px;
+  }
+  
+  .control-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    background: rgba(15, 18, 24, 0.8);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  
+  .control-key {
+    padding: 6px 12px;
+    background: #6a5acd;
+    border-radius: 6px;
+    font-family: ui-monospace, Menlo, monospace;
+    font-weight: bold;
+    font-size: 13px;
+    min-width: 50px;
+    text-align: center;
+    box-shadow: 0 2px 0 #4b3fb3;
+  }
+  
+  .control-desc {
+    font-size: 13px;
+    color: #cfd3da;
+  }
+  
+  .endings-grid {
+    display: grid;
+    gap: 15px;
+    margin-top: 15px;
+  }
+  
+  .ending-card {
+    padding: 20px;
+    border-radius: 12px;
+    border: 2px solid;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .ending-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    opacity: 0.1;
+    z-index: 0;
+  }
+  
+  .ending-card > * {
+    position: relative;
+    z-index: 1;
+  }
+  
+  .ending-1 {
+    border-color: #9be676;
+    background: linear-gradient(135deg, rgba(155, 230, 118, 0.1), rgba(15, 18, 24, 0.9));
+  }
+  
+  .ending-1::before {
+    background: #9be676;
+  }
+  
+  .ending-2 {
+    border-color: #ffd700;
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(15, 18, 24, 0.9));
+  }
+  
+  .ending-2::before {
+    background: #ffd700;
+  }
+  
+  .ending-3 {
+    border-color: #ff9800;
+    background: linear-gradient(135deg, rgba(255, 152, 0, 0.1), rgba(15, 18, 24, 0.9));
+  }
+  
+  .ending-3::before {
+    background: #ff9800;
+  }
+  
+  .ending-number {
+    font-size: 14px;
+    font-weight: bold;
+    opacity: 0.7;
+    margin-bottom: 8px;
+  }
+  
+  .ending-title {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .ending-requirement {
+    font-size: 15px;
+    color: #cfd3da;
+    line-height: 1.6;
+  }
+  
+  .ending-reward {
+    margin-top: 12px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 6px;
+    font-size: 14px;
+    color: #ffd166;
+  }
+  
+  .start-button {
+    display: block;
+    width: 100%;
+    padding: 20px;
+    margin-top: 30px;
+    background: linear-gradient(135deg, #6a5acd, #4b3fb3);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 6px 0 #2d2570, 0 10px 30px rgba(106, 90, 205, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+  
+  .start-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 0 #2d2570, 0 12px 35px rgba(106, 90, 205, 0.6);
+  }
+  
+  .start-button:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 #2d2570, 0 4px 15px rgba(106, 90, 205, 0.4);
+  }
+  
+  .feature-list {
+    list-style: none;
+    padding: 0;
+    margin: 15px 0;
+  }
+  
+  .feature-list li {
+    padding: 8px 0;
+    padding-left: 30px;
+    position: relative;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  
+  .feature-list li::before {
+    content: '🎮';
+    position: absolute;
+    left: 0;
+  }
+  
+  .bonus-section {
+    margin-top: 20px;
+    padding: 15px;
+    background: linear-gradient(135deg, rgba(255, 102, 0, 0.15), rgba(15, 18, 24, 0.8));
+    border: 2px solid #ff6600;
+    border-radius: 10px;
+    text-align: center;
+  }
+  
+  .bonus-section h3 {
+    margin: 0 0 10px 0;
+    color: #ff9800;
+    font-size: 20px;
+  }
+  
+  .bonus-section p {
+    margin: 5px 0;
+    color: #ffd166;
+  }
+  
+  /* KO-FI BUTTON */
+  #kofiButton {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    z-index: 999;
+    display: none;
+  }
+  
+  #kofiButton a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: #FF5E5B;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 10px;
+    font-weight: bold;
+    font-size: 14px;
+    box-shadow: 0 4px 12px rgba(255, 94, 91, 0.4);
+    transition: all 0.3s ease;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+  }
+  
+  #kofiButton a:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(255, 94, 91, 0.6);
+    background: #ff7673;
+  }
+  
+  #kofiButton a:active {
+    transform: translateY(0);
+  }
+  
+  .kofi-icon {
+    font-size: 18px;
+  }
+  
+  /* VERSION NUMBER */
+  #versionNumber {
+    position: fixed;
+    top: 10px;
+    right: 15px;
+    font-size: 11px;
+    color: rgba(207, 211, 218, 0.5);
+    font-family: ui-monospace, Menlo, monospace;
+    z-index: 998;
+    pointer-events: none;
+    display: none;
+  }
+  
+  #versionNumber:hover {
+    color: rgba(207, 211, 218, 0.8);
+  }
+</style>
+</head>
+<body>
+
+<!-- START SCREEN -->
+<div id="startScreen">
+  <div class="start-container">
+    <div class="start-title">
+      <h1>🚗 PIXEL PARKING 🚗</h1>
+      <p class="start-subtitle">Ultimate Edition</p>
+    </div>
+    
+    <!-- STORY SECTION -->
+    <div class="start-section">
+      <h2>📖 The Story</h2>
+      <div class="story-text">
+        "Welcome to the ultimate parking challenge! You are a professional driver tasked with parking vehicles across 50 increasingly difficult levels. Navigate through various biomes, weather conditions, and obstacles. But there's more to this than just parking cars... Hidden throughout your journey is a mysterious story waiting to be unlocked. Master the art of precision driving, collect ancient coins, and discover the secrets that lie within!"
+      </div>
+    </div>
+    
+    <!-- HOW TO PLAY SECTION -->
+    <div class="start-section">
+      <h2>🎮 How to Play</h2>
+      <p>Master these controls to become the ultimate parking champion:</p>
+      <div class="controls-grid">
+        <div class="control-item">
+          <div class="control-key">← →</div>
+          <div class="control-desc">Steer left/right</div>
+        </div>
+        <div class="control-item">
+          <div class="control-key">↑</div>
+          <div class="control-desc">Accelerate</div>
+        </div>
+        <div class="control-item">
+          <div class="control-key">↓</div>
+          <div class="control-desc">Brake/Reverse</div>
+        </div>
+        <div class="control-item">
+          <div class="control-key">SPACE</div>
+          <div class="control-desc">Park vehicle</div>
+        </div>
+        <div class="control-item">
+          <div class="control-key">C</div>
+          <div class="control-desc">Use power-up</div>
+        </div>
+        <div class="control-item">
+          <div class="control-key">R</div>
+          <div class="control-desc">Restart level</div>
+        </div>
+      </div>
+      
+      <h3>📋 Game Rules</h3>
+      <ul class="feature-list">
+        <li>Park all vehicles in their designated spots to complete each level</li>
+        <li>Avoid obstacles, moving vehicles, and environmental hazards</li>
+        <li>Watch your damage meter - too many hits will reset your progress</li>
+        <li>Collect coins scattered throughout levels for special rewards</li>
+        <li>Complete objectives before time runs out</li>
+        <li>Use power-ups strategically to overcome difficult challenges</li>
+        <li>Each level has unique rules - read them carefully!</li>
+      </ul>
+    </div>
+    
+    <!-- THREE ENDINGS SECTION -->
+    <div class="start-section">
+      <h2>🏆 Three Different Endings</h2>
+      <p>Your choices and skills will determine your fate. Can you unlock all three endings?</p>
+      
+      <div class="endings-grid">
+        <!-- Ending 1 -->
+        <div class="ending-card ending-1">
+          <div class="ending-number">ENDING 1</div>
+          <div class="ending-title">
+            <span>📊</span>
+            <span>The Completion Master</span>
+          </div>
+          <div class="ending-requirement">
+            <strong>Requirement:</strong> Complete all 50 levels
+          </div>
+          <div class="ending-reward">
+            🎯 Reward: Unlock the standard ending and prove your parking mastery!
+          </div>
+        </div>
+        
+        <!-- Ending 2 -->
+        <div class="ending-card ending-2">
+          <div class="ending-number">ENDING 2</div>
+          <div class="ending-title">
+            <span>📖</span>
+            <span>The Perfectionist's Tale</span>
+          </div>
+          <div class="ending-requirement">
+            <strong>Requirement:</strong> Complete all 50 levels with 0 or 1 hit per level (maximum)
+          </div>
+          <div class="ending-reward">
+            ✨ Reward: Unlock the complete story! Discover the hidden narrative that unfolds with each perfect run.
+          </div>
+        </div>
+        
+        <!-- Ending 3 -->
+        <div class="ending-card ending-3">
+          <div class="ending-number">ENDING 3</div>
+          <div class="ending-title">
+            <span>🪙</span>
+            <span>The Treasure Hunter</span>
+          </div>
+          <div class="ending-requirement">
+            <strong>Requirement:</strong> Collect at least 84 coins out of 120 total (70% collection rate)
+          </div>
+          <div class="ending-reward">
+            💰 Reward: Unlock the collector's ending! Ancient riches await those who seek them all.
+          </div>
+        </div>
+      </div>
+      
+      <!-- Bonus Dragon Section -->
+      <div class="bonus-section">
+        <h3>SECRET LEVEL BONUS</h3>
+        <p>Complete ALL THREE endings to unlock the ultimate secret!</p>
+        <p style="font-size:13px; margin-top:10px; color:#999;">
+          Only the most dedicated players will discover what lies beyond...
+        </p>
+      </div>
+    </div>
+    
+    <!-- START BUTTON -->
+    <button class="start-button" onclick="startGame()">
+      🚀 Start Your Journey 🚀
+    </button>
+  </div>
+</div>
+
+<!-- KO-FI BUTTON (appears after game starts) -->
+<div id="kofiButton">
+  <a href="https://ko-fi.com/harrym" target="_blank" rel="noopener">
+    <span class="kofi-icon">☕</span>
+    <span>Support on Ko-fi</span>
+  </a>
+</div>
+
+<!-- VERSION NUMBER -->
+<div id="versionNumber">v1.0.0</div>
+
+<div class="wrap">
+  <div class="game-container">
+    <canvas id="game" width="960" height="540"></canvas>
+    
+  </div>
+  
+  <section class="hud">
+    <h1 style="font-size:20px;margin:0 0 8px;color:#9be676">🚗 Pixel Parking</h1>
+    
+    <!-- COMPACT CONTROLS -->
+    <p style="font-size:10px;margin:0 0 10px;color:#999">
+      <span class="kbd" style="padding:2px 4px;font-size:9px">←→</span> steer 
+      <span class="kbd" style="padding:2px 4px;font-size:9px">↑↓</span> gas/brake 
+      <span class="kbd" style="padding:2px 4px;font-size:9px">SPC</span> park 
+      <span class="kbd" style="padding:2px 4px;font-size:9px">C</span> power 
+      <span class="kbd" style="padding:2px 4px;font-size:9px">R</span> restart
+    </p>
+
+    <!-- CURRENT LEVEL INFO - Compact -->
+    <div style="padding:8px;background:#1a2a3a;border:2px solid #4a7aaa;border-radius:8px;margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <span style="font-size:14px;font-weight:bold;color:#e7e7e7">Level <span id="level">1</span>/50</span>
+        <span style="font-size:11px;color:#ffd166">🏆 Best: <span id="bestLevel">0</span></span>
+      </div>
+      <div style="display:flex;gap:8px;font-size:10px;color:#cfd3da;margin-bottom:6px">
+        <span><span id="biome">Parking</span></span>
+        <span>·</span>
+        <span><span id="weatherHud">Clear</span></span>
+        <span>·</span>
+        <span><span id="vehicle">Cars</span></span>
+      </div>
+      
+      <div style="background:#1a1f29;padding:6px;border-radius:4px;margin-bottom:4px">
+        <div style="font-size:12px;color:#9be676;margin-bottom:2px">🎯 <span id="ruleText">Park vehicles</span></div>
+        <div style="font-size:11px;color:#ffd166"><span id="ruleProg">0</span>/<span id="ruleNeed">0</span></div>
+      </div>
+      
+      <!-- Damage Bar - Inline with icon -->
+      <div style="display:flex;align-items:center;gap:6px">
+        <span style="font-size:11px;color:#ff6b6b">💥</span>
+        <div style="flex:1;background:#1a1f29;border:1px solid #334;border-radius:3px;height:8px;overflow:hidden">
+          <div id="dmgFill" style="background:#ef476f;height:100%;width:0%;transition:width 0.2s"></div>
+        </div>
+        <span style="font-size:10px;color:#cfd3da"><span id="hits">0</span>/<span id="hitsAllowed">2</span></span>
+      </div>
+      
+      <!-- Time & Coins - Single Line -->
+      <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:11px">
+        <span style="color:#79d2ff">⏱️ <span id="timeHud">0</span>s</span>
+        <span style="color:#ffd700">🪙 <span id="coinsHud">0</span></span>
+        <span style="color:#9be676" id="powerupHud">No Power-up</span>
+      </div>
+    </div>
+
+    <!-- 3 ENDINGS PROGRESS - Compact with Current & All-Time -->
+    <div style="padding:10px;border:2px solid #6a5acd;border-radius:8px;background:linear-gradient(135deg, #0e121a, #1a1a2e);margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <h3 style="margin:0;font-size:14px;color:#9be676">🏆 3 Endings</h3>
+        <span style="font-size:9px;color:#999">Current / Best</span>
+      </div>
+      
+      <!-- Ending 1 -->
+      <div style="margin-bottom:6px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:2px">
+          <span style="font-size:10px;color:#cfd3da">📊 Levels</span>
+          <div style="font-size:10px">
+            <span id="ending1Progress" style="color:#9be676">0</span>/<span style="color:#999">50</span>
+            <span style="color:#666;margin:0 2px">|</span>
+            <span id="ending1Best" style="color:#ffd700">✓0</span>
+          </div>
+        </div>
+        <div style="background:#1a1f29;border:1px solid #334;border-radius:3px;height:6px;overflow:hidden">
+          <div id="ending1Bar" style="background:#9be676;height:100%;width:0%;transition:width 0.3s"></div>
+        </div>
+      </div>
+      
+      <!-- Ending 2 -->
+      <div style="margin-bottom:6px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:2px">
+          <span style="font-size:10px;color:#cfd3da">📖 Words</span>
+          <div style="font-size:10px">
+            <span id="ending2Progress" style="color:#9be676">0</span>/<span style="color:#999">50</span>
+            <span style="color:#666;margin:0 2px">|</span>
+            <span id="ending2Best" style="color:#ffd700">✓0</span>
+          </div>
+        </div>
+        <div style="background:#1a1f29;border:1px solid #334;border-radius:3px;height:6px;overflow:hidden">
+          <div id="ending2Bar" style="background:#ffd700;height:100%;width:0%;transition:width 0.3s"></div>
+        </div>
+      </div>
+      
+      <!-- Ending 3 -->
+      <div style="margin-bottom:6px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:2px">
+          <span style="font-size:10px;color:#cfd3da">🪙 Coins</span>
+          <div style="font-size:10px">
+            <span id="ending3Progress" style="color:#9be676">0</span>/<span style="color:#999">120</span>
+            <span style="color:#666;margin:0 2px">|</span>
+            <span id="ending3Best" style="color:#ffd700">✓0</span>
+          </div>
+        </div>
+        <div style="background:#1a1f29;border:1px solid #334;border-radius:3px;height:6px;overflow:hidden">
+          <div id="ending3Bar" style="background:#ff9800;height:100%;width:0%;transition:width 0.3s"></div>
+        </div>
+      </div>
+      
+      <!-- Dragon Status -->
+      <div id="dragonStatus" style="margin-top:8px;padding:6px;background:rgba(255,102,0,0.1);border:1px solid #ff6600;border-radius:4px;text-align:center">
+        <span style="font-size:10px;color:#ff6600">🔒 Dragon Bonus: Complete all 3 endings</span>
+      </div>
+    </div>
+
+    <!-- STORY DISPLAY - Compact -->
+    <div id="storyCompact" style="padding:8px;background:#1a1f29;border:1px solid #6a5acd;border-radius:6px;margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <span style="font-size:11px;color:#e7e7e7">📖 Story</span>
+        <span style="font-size:9px;color:#999"><span id="storyCount">0</span>/50</span>
+      </div>
+      <div id="storyPreview" style="font-size:9px;color:#9be676;line-height:1.4;max-height:40px;overflow:hidden;word-wrap:break-word;overflow-wrap:break-word">
+        Complete levels to unlock story...
+      </div>
+    </div>
+
+    <!-- LEADERBOARD - Ultra Compact -->
+    <div id="scoresBox" style="padding:8px;border:1px solid #4a7aaa;border-radius:6px;background:#0e121a"></div>
+    
+    <!-- ACHIEVEMENTS - Ultra Compact -->
+    <div id="achievementsBox" style="margin-top:8px;padding:8px;border:1px solid #334;border-radius:6px;background:#0e121a"></div>
+  </section>
+</div>
+<div id="err"></div>
+
+<script>
+// Start game function - must be global for onclick
+function startGame() {
+  const startScreen = document.getElementById('startScreen');
+  startScreen.style.animation = 'fadeOut 0.5s ease-out';
+  setTimeout(() => {
+    startScreen.style.display = 'none';
+    // Show Ko-fi button and version when game starts
+    document.getElementById('kofiButton').style.display = 'block';
+    document.getElementById('versionNumber').style.display = 'block';
+    // Trigger the actual game start
+    if(window.gameInit) window.gameInit();
+  }, 500);
+}
+
+(()=>{
+  'use strict';
+
+  // ----- Canvas & DPI
+  const W=960,H=540, TILE=24;
+  const VEHICLE_SCALE = 0.8; // 90% size (try 0.85 if you want smaller)
+  const cvs=document.getElementById('game');
+  const ctx=cvs.getContext('2d');
+  const DPR=Math.min(window.devicePixelRatio||1,3);
+  cvs.width=W*DPR; cvs.height=H*DPR; cvs.style.width=W+'px'; cvs.style.height=H+'px';
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+
+// ADD THIS:
+ctx.lineCap = 'round';
+ctx.lineJoin = 'round';
+ctx.imageSmoothingEnabled = true;
+
+
+  // ----- UI helpers + error panel
+  const showErr=(msg)=>{ const e=document.getElementById('err'); e.textContent=msg; e.style.display='block'; };
+  window.onerror=(m)=>showErr('JS error: '+m);
+
+  const ui={
+    dmgFill:document.getElementById('dmgFill'),
+    hits:document.getElementById('hits'),
+    level:document.getElementById('level'),
+    time:document.getElementById('timeHud'),
+    ruleText:document.getElementById('ruleText'),
+    ruleProg:document.getElementById('ruleProg'),
+    ruleNeed:document.getElementById('ruleNeed'),
+    hitsAllowed:document.getElementById('hitsAllowed'),
+    biome:document.getElementById('biome'),
+    vehicle:document.getElementById('vehicle'),
+    weatherHud:document.getElementById('weatherHud'),
+    bestLevel:document.getElementById('bestLevel'),
+    powerupHud:document.getElementById('powerupHud'),
+    coinsHud:document.getElementById('coinsHud')
+  };
+
+  // ----- Local high scores
+  const STORAGE_SCORES='pp_scores_v1';
+  const STORAGE_NAME='pp_player_v1';
+  const STORAGE_BEST='pp_best_v1';
+  let playerName=localStorage.getItem(STORAGE_NAME)||'';
+  let scores=JSON.parse(localStorage.getItem(STORAGE_SCORES)||'[]');
+  let bestLevel=parseInt(localStorage.getItem(STORAGE_BEST)||'0');
+  
+  function updateBestLevel(level){
+    if(level > bestLevel){
+      bestLevel = level;
+      localStorage.setItem(STORAGE_BEST, bestLevel);
+      ui.bestLevel.textContent = bestLevel;
+    }
+  }
+  
+  // ----- Achievements System
+  const STORAGE_ACHIEVEMENTS='pp_achievements_v1';
+  const STORAGE_STATS='pp_stats_v1';
+  let achievements=JSON.parse(localStorage.getItem(STORAGE_ACHIEVEMENTS)||'[]');
+  let stats=JSON.parse(localStorage.getItem(STORAGE_STATS)||'{"totalParks":0,"perfectLevels":0,"levelsCompleted":0}');
+  
+  const ACHIEVEMENTS = [
+    { id: 'first_park', name: 'First Park', desc: 'Park your first vehicle', icon: '🚗', check: ()=>stats.totalParks >= 1 },
+    { id: 'parker_10', name: 'Parking Pro', desc: 'Park 10 vehicles', icon: '🎯', check: ()=>stats.totalParks >= 10 },
+    { id: 'parker_50', name: 'Parking Master', desc: 'Park 50 vehicles', icon: '⭐', check: ()=>stats.totalParks >= 50 },
+    { id: 'parker_100', name: 'Parking Legend', desc: 'Park 100 vehicles', icon: '🏆', check: ()=>stats.totalParks >= 100 },
+    { id: 'perfect_1', name: 'Flawless', desc: 'Complete level without hitting', icon: '💎', check: ()=>stats.perfectLevels >= 1 },
+    { id: 'perfect_5', name: 'Untouchable', desc: 'Complete 5 perfect levels', icon: '✨', check: ()=>stats.perfectLevels >= 5 },
+    { id: 'level_5', name: 'Getting Started', desc: 'Reach level 5', icon: '🎮', check: ()=>bestLevel >= 5 },
+    { id: 'level_10', name: 'Experienced', desc: 'Reach level 10', icon: '🎪', check: ()=>bestLevel >= 10 },
+    { id: 'level_20', name: 'Expert', desc: 'Reach level 20', icon: '👑', check: ()=>bestLevel >= 20 },
+    { id: 'survivor', name: 'Survivor', desc: 'Complete 10 levels', icon: '🛡️', check: ()=>stats.levelsCompleted >= 10 }
+  ];
+  
+  function saveStats(){ localStorage.setItem(STORAGE_STATS, JSON.stringify(stats)); }
+  
+  function checkAchievements(){
+    let newUnlocked = [];
+    for(const ach of ACHIEVEMENTS){
+      if(!achievements.includes(ach.id) && ach.check()){
+        achievements.push(ach.id);
+        newUnlocked.push(ach);
+      }
+    }
+    if(newUnlocked.length > 0){
+      localStorage.setItem(STORAGE_ACHIEVEMENTS, JSON.stringify(achievements));
+      renderAchievements();
+    }
+  }
+  
+  // ----- STORY SYSTEM (100-Level Journey)
+  const STORAGE_STORY='pp_story_v1';
+  let playerStory=[]; // Tracks which words are unlocked (true/false for each of 50 words)
+  
+  function getWordForLevel(levelIndex, hits) {
+    // Return the word from MASTER_STORY, and track if it should be unlocked
+    const isUnlocked = (hits <= 1); // Unlock if 0 or 1 hits
+    
+    if(isUnlocked) {
+      perfectLevelWords[levelIndex] = true; // Mark this level as perfect
+    } else {
+      perfectLevelWords[levelIndex] = false; // Not unlocked
+    }
+    
+    return {
+      word: MASTER_STORY[levelIndex],
+      unlocked: isUnlocked,
+      hits: hits
+    };
+  }
+  
+  function saveStoryWord(level, wordData) {
+    playerStory[level] = wordData;
+  }
+  
+  function resetStory() {
+    // SAVE BEST PROGRESS before resetting
+    saveBestProgress();
+    
+    // SHOW FANCY STORY EARNED THIS RUN (if any words were unlocked)
+    const unlockedThisRun = perfectLevelWords.filter(w => w === true).length;
+    if(unlockedThisRun > 0) {
+      showGameOverStory();
+    }
+    
+    // Reset everything
+    playerStory = [];
+    perfectLevelWords = [];
+    totalCoins = 0;
+    spendableCoins = 0; // Reset spendable coins too
+    totalCoinsSpawned = 0;
+    purchasedPowerup = null;
+    powerupActive = false;
+    hasCompletedAll50 = false;
+    hasUnlockedFullStory = false;
+    hasCollected70PercentCoins = false;
+    dragonBonusUnlocked = false;
+    updateStoryDisplay();
+    updateCoinDisplay();
+    updatePowerupDisplay();
+    updateEndingsProgress(); // Update to show best scores
+  }
+  
+  // Show fancy story earned this run on game over
+  function showGameOverStory() {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+      position:fixed;top:0;left:0;right:0;bottom:0;
+      background:rgba(0,0,0,0.92);
+      display:flex;align-items:center;justify-content:center;
+      z-index:9999;
+      animation: fadeIn 0.3s ease;
+    `;
+    
+    // Build story text
+    let storyText = '';
+    let unlockedCount = 0;
+    for(let i = 0; i < playerStory.length; i++) {
+      if(playerStory[i]) {
+        if(playerStory[i].unlocked) {
+          storyText += `<span style="color:#9be676;margin:0 4px;font-weight:500;animation:wordPop ${0.1 + i*0.05}s ease">${playerStory[i].word}</span>`;
+          unlockedCount++;
+        } else {
+          storyText += `<span style="color:#666;margin:0 4px">_____</span>`;
+        }
+      }
+    }
+    
+    const savedBest = loadBestProgress();
+    const savedEndings = loadSavedEndings();
+    
+    overlay.innerHTML = `
+      <style>
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes wordPop { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+      </style>
+      <div style="background:linear-gradient(135deg, #1a1a2e, #0e121a);border:3px solid #6a5acd;border-radius:16px;padding:40px;max-width:800px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.7);animation:slideUp 0.4s ease">
+        <h1 style="margin:0 0 16px;font-size:32px;color:#ff6b6b">Game Over!</h1>
+        <p style="margin:0 0 24px;font-size:16px;color:#cfd3da">Level ${levelIndex + 1} • ${unlockedCount} words unlocked this run</p>
+        
+        <div style="padding:20px;background:#0e121a;border:2px solid #6a5acd;border-radius:12px;margin-bottom:24px">
+          <h2 style="margin:0 0 16px;font-size:20px;color:#9be676">📖 Your Story This Run</h2>
+          <div style="padding:16px;background:#1a1f29;border-radius:8px;line-height:2;font-size:15px;word-wrap:break-word;overflow-wrap:break-word;text-align:left">
+            ${storyText || '<span style="color:#666;font-style:italic">No story unlocked this run...</span>'}
+          </div>
+        </div>
+        
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:24px;text-align:center">
+          <div style="padding:12px;background:#1a2a3a;border-radius:8px">
+            <div style="font-size:24px;color:#9be676;font-weight:bold">${levelIndex + 1}</div>
+            <div style="font-size:11px;color:#cfd3da;margin-top:4px">Levels</div>
+            <div style="font-size:10px;color:#ffd700;margin-top:2px">Best: ${savedBest.bestLevels || 0}</div>
+          </div>
+          <div style="padding:12px;background:#1a2a3a;border-radius:8px">
+            <div style="font-size:24px;color:#ffd700;font-weight:bold">${unlockedCount}</div>
+            <div style="font-size:11px;color:#cfd3da;margin-top:4px">Words</div>
+            <div style="font-size:10px;color:#ffd700;margin-top:2px">Best: ${savedBest.bestWords || 0}</div>
+          </div>
+          <div style="padding:12px;background:#1a2a3a;border-radius:8px">
+            <div style="font-size:24px;color:#ff9800;font-weight:bold">${totalCoins}</div>
+            <div style="font-size:11px;color:#cfd3da;margin-top:4px">Coins</div>
+            <div style="font-size:10px;color:#ffd700;margin-top:2px">Best: ${savedBest.bestCoins || 0}</div>
+          </div>
+        </div>
+        
+        <div style="padding:12px;background:rgba(106,90,205,0.1);border:1px solid #6a5acd;border-radius:8px;margin-bottom:20px">
+          <div style="font-size:12px;color:#cfd3da">
+            <strong>Progress Towards 3 Endings:</strong>
+          </div>
+          <div style="display:flex;gap:16px;justify-content:center;margin-top:8px;font-size:11px">
+            <span style="color:${savedEndings.ending1Ever ? '#9be676' : '#666'}">${savedEndings.ending1Ever ? '✅' : '⬜'} 50 Levels</span>
+            <span style="color:${savedEndings.ending2Ever ? '#9be676' : '#666'}">${savedEndings.ending2Ever ? '✅' : '⬜'} 50 Words</span>
+            <span style="color:${savedEndings.ending3Ever ? '#9be676' : '#666'}">${savedEndings.ending3Ever ? '✅' : '⬜'} 84 Coins</span>
+          </div>
+        </div>
+        
+        <button onclick="this.parentElement.parentElement.remove()" style="padding:12px 32px;background:#6a5acd;color:#fff;border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer;box-shadow:0 4px 12px rgba(106,90,205,0.4)">
+          Continue
+        </button>
+      </div>
+    `;
+    
+    document.body.appendChild(overlay);
+  }
+  
+  function calculateStoryRating() {
+    let unlocked = 0, locked = 0;
+    for(let i = 0; i < playerStory.length; i++) {
+      if(!playerStory[i]) continue;
+      if(playerStory[i].unlocked) unlocked++;
+      else locked++;
+    }
+    
+    const total = unlocked + locked;
+    if(total === 0) return {rating: "☆☆☆☆☆", text: "Begin Your Journey", score: 0, unlocked: 0, locked: 0, total: 0};
+    
+    const percentage = (unlocked / total) * 100;
+    
+    let rating, text;
+    if (percentage === 100) { rating = "⭐⭐⭐⭐⭐"; text = "PERFECT STORY UNLOCKED!"; }
+    else if (percentage >= 80) { rating = "⭐⭐⭐⭐☆"; text = "NEARLY PERFECT"; }
+    else if (percentage >= 60) { rating = "⭐⭐⭐☆☆"; text = "GREAT PROGRESS"; }
+    else if (percentage >= 40) { rating = "⭐⭐☆☆☆"; text = "GOOD START"; }
+    else { rating = "⭐☆☆☆☆"; text = "KEEP TRYING"; }
+    
+    return {rating, text, score: percentage.toFixed(0), unlocked, locked, total};
+  }
+  
+  function showStoryUnlock(level, wordData) {
+    const storyRating = calculateStoryRating();
+    const qualityColor = wordData.unlocked ? "#9be676" : "#666";
+    const qualityText = wordData.unlocked ? "✓ UNLOCKED" : "🔒 LOCKED";
+    
+    // Create overlay
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+      position:fixed;top:0;left:0;right:0;bottom:0;
+      background:rgba(0,0,0,0.85);
+      display:flex;align-items:center;justify-content:center;
+      z-index:10000;animation:fadeIn 0.3s;
+    `;
+    
+    overlay.innerHTML = `
+      <div style="background:#0e121a;border:3px solid ${qualityColor};border-radius:16px;padding:32px;max-width:500px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.5)">
+        <h2 style="margin:0 0 12px;font-size:24px;color:#e7e7e7">🏆 LEVEL ${level + 1} COMPLETE!</h2>
+        <p style="margin:0 0 24px;color:#cfd3da;font-size:14px">${wordData.hits} ${wordData.hits === 1 ? 'Hit' : 'Hits'} Taken</p>
+        
+        <div style="margin:24px 0;padding:24px;background:#1a1f29;border-radius:12px;border:2px solid ${qualityColor}">
+          <p style="margin:0 0 8px;font-size:13px;color:#cfd3da">Story Word ${level + 1}/50:</p>
+          <p style="margin:0;font-size:42px;font-weight:bold;color:${qualityColor};text-transform:uppercase">${wordData.unlocked ? wordData.word : '_____'}</p>
+          <p style="margin:12px 0 0;font-size:16px;color:${qualityColor}">${qualityText}</p>
+          ${!wordData.unlocked ? `<p style="margin:8px 0 0;font-size:11px;color:#999;font-style:italic">(Complete with 0-1 hits to unlock)</p>` : ''}
+        </div>
+        
+        <div style="margin:20px 0;padding:16px;background:#0e121a;border-radius:8px;border:1px solid #334">
+          <p style="margin:0 0 8px;font-size:13px;color:#cfd3da">Story Progress: ${storyRating.total}/50 words</p>
+          <div style="display:flex;justify-content:center;gap:16px;font-size:12px">
+            <span style="color:#9be676">✓ ${storyRating.unlocked} Unlocked</span>
+            <span style="color:#666">🔒 ${storyRating.locked} Locked</span>
+          </div>
+          <p style="margin:8px 0 0;font-size:14px;color:#e7e7e7">${storyRating.rating} ${storyRating.text}</p>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(overlay);
+    setTimeout(() => overlay.remove(), 2500);
+  }
+  
+  function updateStoryDisplay() {
+    // Story display is now handled by updateEndingsProgress() in compact form
+    // This function kept for compatibility but does nothing
+  }
+  
+  function showFullStory() {
+    const storyRating = calculateStoryRating();
+    let storyText = "";
+    
+    for(let i = 0; i < playerStory.length; i++) {
+      if(playerStory[i]) {
+        if(playerStory[i].unlocked) {
+          storyText += `<span style="color:#9be676;margin:0 4px">${playerStory[i].word}</span>`;
+        } else {
+          storyText += `<span style="color:#666;margin:0 4px">_____</span>`;
+        }
+      }
+    }
+    
+    if(storyText === "") {
+      storyText = "<p style='color:#999;font-style:italic'>Your story begins... Complete levels to collect words!</p>";
+    }
+    
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+      position:fixed;top:0;left:0;right:0;bottom:0;
+      background:rgba(0,0,0,0.9);
+      display:flex;align-items:center;justify-content:center;
+      z-index:10000;padding:20px;overflow:auto;
+    `;
+    
+    overlay.innerHTML = `
+      <div style="background:#0e121a;border:2px solid #6a5acd;border-radius:16px;padding:32px;max-width:700px;width:100%;max-height:80vh;overflow-y:auto">
+        <h2 style="margin:0 0 16px;font-size:28px;color:#e7e7e7;text-align:center">📖 Your Epic Story</h2>
+        
+        <div style="margin:20px 0;padding:20px;background:#1a1f29;border-radius:12px;line-height:1.8;font-size:18px;text-align:center">
+          ${storyText}
+        </div>
+        
+        <div style="margin:24px 0;padding:20px;background:#0e121a;border-radius:8px;border:1px solid #334;text-align:center">
+          <p style="margin:0 0 12px;font-size:16px;color:#e7e7e7">Progress: ${storyRating.total}/100 words</p>
+          <div style="background:#1a1f29;height:20px;border-radius:10px;overflow:hidden;margin:12px 0">
+            <div style="background:linear-gradient(90deg,#FFD700,#9be676,#6a5acd);height:100%;width:${storyRating.total}%;transition:width 0.3s"></div>
+          </div>
+          <div style="display:flex;justify-content:center;gap:24px;margin:16px 0;font-size:14px">
+            <span style="color:#FFD700">🏆 Legendary: ${storyRating.legendary}</span>
+            <span style="color:#9be676">⭐ Rare: ${storyRating.rare}</span>
+            <span style="color:#cfd3da">✓ Common: ${storyRating.common}</span>
+          </div>
+          <p style="margin:12px 0 0;font-size:18px;color:#e7e7e7;font-weight:bold">${storyRating.rating} ${storyRating.text}</p>
+          ${storyRating.total >= 100 ? '<p style="margin:12px 0 0;font-size:16px;color:#FFD700">🎉 STORY COMPLETE! 🎉</p>' : ''}
+        </div>
+        
+        <button id="closeStoryBtn" style="margin-top:20px;padding:12px 32px;background:#6a5acd;color:#fff;border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer;width:100%;box-shadow:0 4px 0 #4b3fb3">
+          Close
+        </button>
+      </div>
+    `;
+    
+    document.body.appendChild(overlay);
+    document.getElementById('closeStoryBtn').onclick = () => overlay.remove();
+    overlay.onclick = (e) => { if(e.target === overlay) overlay.remove(); };
+  }
+  
+  function renderAchievements(){
+    const box=document.getElementById('achievementsBox'); if(!box) return;
+    let html='<h3 style="margin:0 0 10px 0;font-size:15px">🎖️ Achievements</h3>';
+    
+    // Show unlocked count
+    const unlockedCount = achievements.length;
+    html+=`<p style="margin:0 0 8px 0;font-size:11px;color:#999">${unlockedCount}/${ACHIEVEMENTS.length} unlocked · Parks: ${stats.totalParks} · Perfect: ${stats.perfectLevels}</p>`;
+    
+    // Compact grid with max-height and scroll
+    html+='<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;max-height:240px;overflow-y:auto;padding-right:4px">';
+    for(const ach of ACHIEVEMENTS){
+      const unlocked = achievements.includes(ach.id);
+      const opacity = unlocked ? '1' : '0.25';
+      const bg = unlocked ? '#1a3a1a' : '#15171f';
+      const borderColor = unlocked ? '#2a5a2a' : '#222';
+      html+=`<div style="padding:5px;background:${bg};border:1px solid ${borderColor};border-radius:5px;opacity:${opacity}">`;
+      html+=`<div style="font-size:18px;margin-bottom:2px">${ach.icon}</div>`;
+      html+=`<div style="font-size:10px;font-weight:600;line-height:1.2">${ach.name}</div>`;
+      html+=`<div style="font-size:8px;color:#888;line-height:1.2;margin-top:2px">${ach.desc}</div>`;
+      html+=`</div>`;
+    }
+    html+='</div>';
+    box.innerHTML=html;
+  }
+  
+  function askName(){ const n=prompt('Enter your name for high scores:',playerName||'Player'); if(n){playerName=n.trim(); localStorage.setItem(STORAGE_NAME,playerName);} }
+  function escapeHtml(s){return s? s.replace(/[&<>"']/g,c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])):'';}
+  function addScore(level){ updateBestLevel(level); if(!playerName) askName(); scores.push({name:playerName||'Anonymous',level,date:new Date().toISOString()}); scores.sort((a,b)=>(b.level-a.level)||(a.date.localeCompare(b.date))); scores=scores.slice(0,10); localStorage.setItem(STORAGE_SCORES,JSON.stringify(scores)); renderScores(); }
+  function renderScores(){
+    const box=document.getElementById('scoresBox'); if(!box) return;
+    if(!scores.length){ 
+      box.innerHTML='<div style="text-align:center;padding:20px"><h3 style="margin:0 0 10px 0;font-size:16px">🏆 Leaderboard</h3><p style="margin:0 0 12px 0;color:#999">No scores yet. Be the first!</p><p style="margin:0"><a href="#" id="setName" style="color:#6a5acd;text-decoration:none;font-weight:600">Set your name →</a></p></div>'; 
+      document.getElementById('setName').onclick=(e)=>{e.preventDefault();askName();renderScores();}; 
+      return; 
+    }
+    
+    // Build leaderboard table with better styling
+    let html='<h3 style="margin:0 0 12px 0;font-size:16px">🏆 Leaderboard</h3>';
+    html+='<div style="max-height:280px;overflow-y:auto">';
+    html+='<table style="width:100%;border-collapse:collapse">';
+    html+='<thead><tr style="border-bottom:2px solid #445;color:#aaa;font-size:11px;background:#12161f"><th style="text-align:left;padding:6px 8px">Rank</th><th style="text-align:left;padding:6px 8px">Player</th><th style="text-align:right;padding:6px 8px">Level</th><th style="text-align:right;padding:6px 8px">Date</th></tr></thead>';
+    html+='<tbody>';
+    
+    for(let i=0; i<scores.length; i++){
+      const s = scores[i];
+      const d = new Date(s.date);
+      const dateStr = d.toLocaleDateString('en-US', {month:'short', day:'numeric'});
+      const isCurrentPlayer = s.name === playerName;
+      const bgColor = i===0 ? '#2a3a1a' : (i===1 ? '#2a2a1a' : (i===2 ? '#2a2220' : (isCurrentPlayer ? '#1a2a3a' : 'transparent')));
+      const rankIcon = i===0 ? '🥇' : (i===1 ? '🥈' : (i===2 ? '🥉' : `<span style="color:#666">${i+1}</span>`));
+      
+      html+=`<tr style="background:${bgColor};border-bottom:1px solid #223">`;
+      html+=`<td style="padding:8px;font-size:16px">${rankIcon}</td>`;
+      html+=`<td style="padding:8px;font-weight:${isCurrentPlayer?'bold':'normal'};color:${isCurrentPlayer?'#79d2ff':'#e7e7e7'};font-size:13px">${escapeHtml(s.name)}</td>`;
+      html+=`<td style="padding:8px;text-align:right;font-weight:bold;color:#9be676;font-size:15px">${s.level}</td>`;
+      html+=`<td style="padding:8px;text-align:right;font-size:10px;color:#888">${dateStr}</td>`;
+      html+=`</tr>`;
+    }
+    
+    html+='</tbody></table></div>';
+    html+='<p style="margin:12px 0 0 0;font-size:11px;text-align:center"><a href="#" id="changeName" style="color:#6a5acd;text-decoration:none">Change name</a> · <a href="#" id="clearScores" style="color:#ef476f;text-decoration:none">Clear all</a></p>';
+    
+    box.innerHTML=html;
+    document.getElementById('changeName').onclick=(e)=>{e.preventDefault();askName();renderScores();};
+    document.getElementById('clearScores').onclick=(e)=>{e.preventDefault(); if(confirm('Clear all high scores?')){scores=[]; localStorage.removeItem(STORAGE_SCORES); renderScores();}};
+  }
+
+  // ----- Utils & textures
+  const rnd=(a,b)=>Math.random()*(b-a)+a, rndi=(a,b)=>(Math.random()*(b-a+1)|0)+a, clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), PI2=Math.PI*2;
+  function makePattern(draw,s=96){ const off=document.createElement('canvas'); off.width=off.height=s; const g=off.getContext('2d'); draw(g,s); return ctx.createPattern(off,'repeat'); }
+  const tex={
+    asphalt: makePattern((g,s)=>{ g.fillStyle='#2f3749'; g.fillRect(0,0,s,s); g.fillStyle='rgba(255,255,255,.06)'; for(let i=0;i<220;i++) g.fillRect((Math.random()*s)|0,(Math.random()*s)|0,1,1); }),
+    grass:   makePattern((g,s)=>{ g.fillStyle='#1f2a1a'; g.fillRect(0,0,s,s); g.fillStyle='rgba(42,75,34,.35)'; for(let i=0;i<60;i++) g.fillRect(rnd(0,s), rnd(0,s), 2, 1); }),
+    water:   makePattern((g,s)=>{ g.fillStyle='#103a5a'; g.fillRect(0,0,s,s); g.strokeStyle='rgba(255,255,255,.08)'; for(let i=0;i<50;i++){ g.beginPath(); g.ellipse(Math.random()*s, Math.random()*s, Math.random()*18+8, Math.random()*6+2, Math.random()*3.14, 0, 6.28); g.stroke(); } }),
+    dirt:    makePattern((g,s)=>{ g.fillStyle='#3a2d22'; g.fillRect(0,0,s,s); g.fillStyle='rgba(255,255,255,.04)'; for(let i=0;i<140;i++) g.fillRect((Math.random()*s)|0,(Math.random()*s)|0,1,1); }),
+    town:    makePattern((g,s)=>{ g.fillStyle='#565e70'; g.fillRect(0,0,s,s); g.fillStyle='#111826'; for(let y=2;y<s;y+=4){ for(let x=2;x<s;x+=4){ g.fillRect(x,y,1,1);} } })
+  };
+
+  // Lava texture
+  tex.lava = makePattern((g,s)=>{ 
+    g.fillStyle='#3a0a0a'; 
+    g.fillRect(0,0,s,s); 
+    g.fillStyle='#ff3300'; 
+    for(let i=0;i<40;i++){ 
+      g.globalAlpha=Math.random()*0.3+0.1; 
+      g.beginPath(); 
+      g.arc(Math.random()*s, Math.random()*s, Math.random()*8+4, 0, 6.28); 
+      g.fill(); 
+    }
+    g.globalAlpha=1;
+  });
+
+  // ----- Biomes (handling differences)
+  const BIOMES=[
+    { name:'Parking', ground:tex.grass,  lot:tex.asphalt, line:'#e8eff8', theme:'cars',   physics:{accel:1.0, steer:1.0, drag:2.0, max:1.0}, mud:false },
+    { name:'Sea',     ground:tex.water,  lot:tex.water,   line:'#bfe4ff', theme:'boats',  physics:{accel:0.9, steer:0.6, drag:1.2, max:1.0}, mud:false },
+    { name:'Town',    ground:tex.town,   lot:tex.asphalt, line:'#f2f2f2', theme:'trucks', physics:{accel:0.8, steer:0.9, drag:2.2, max:0.85}, mud:false },
+    { name:'Forest',  ground:tex.grass,  lot:tex.dirt,    line:'#d7d2c5', theme:'cars',   physics:{accel:1.0, steer:0.95, drag:2.2, max:0.95}, mud:true },
+    { name:'Village', ground:tex.grass,  lot:tex.asphalt, line:'#e8eff8', theme:'oldcars',physics:{accel:0.75,steer:0.9, drag:2.3, max:0.85}, mud:false },
+    { name:'Lava🌋',  ground:tex.lava,   lot:tex.lava,    line:'#ff6600', theme:'cars',   physics:{accel:0.85, steer:0.8, drag:1.8, max:0.9}, mud:false, lava:true }
+  ];
+
+  // ----- Weather (affects traction/visibility)
+  const WEATHER=[
+    { name:'Clear', icon:'☀️', physics:{accel:1, steer:1, drag:1, friction:1}, particles:null, visibility:1 },
+    { name:'Rain',  icon:'🌧️', physics:{accel:0.9, steer:0.8, drag:0.9, friction:0.7}, particles:'rain', visibility:0.85 },
+    { name:'Snow',  icon:'❄️', physics:{accel:0.8, steer:0.7, drag:1.0, friction:0.6}, particles:'snow', visibility:0.8 },
+    { name:'Fog',   icon:'🌫️', physics:{accel:1, steer:1, drag:1, friction:1}, particles:'fog',  visibility:0.5 }
+  ];
+
+  // ----- Level state & geometry
+  let levelIndex=0, spots=[], spawns=[], gridCols=0, gridRows=0;
+  let boxes=[], mudZones=[], redSpots=[], moving=[], weatherParticles=[];
+  let holes=[]; // Collapsing floor holes that kill player
+  let fireHoles=[]; // Burning holes created by dragon fireballs
+  let dragon=null; // Dragon enemy that shoots fireballs (levels 32+)
+  let fireballs=[]; // Active fireballs from dragon
+  let lotShape='rect', currentBiome=BIOMES[0], currentWeather=WEATHER[0], lotMemo=null;
+  // NEW: decorative & obstacle props
+	let props=[]; // {type, x,y, w,h, r, collide, shape}
+  let nightMode=false, elevationLevel=0; // NEW: Night mode and elevation features
+
+ 	function buildLevel(idx){
+    spots.length=0; spawns.length=0; boxes.length=0; mudZones.length=0; redSpots=[]; moving.length=0; weatherParticles.length=0; holes.length=0; fireHoles.length=0; fireballs.length=0;
+    currentBiome = BIOMES[rndi(0, BIOMES.length-1)];
+    currentWeather = WEATHER[rndi(0, WEATHER.length-1)];
+    
+    // Night mode (starts from level 5, increases gradually)
+    nightMode = idx >= 5 && Math.random() < Math.min(0.35, 0.05 + idx * 0.005);
+    
+    // Elevation/ramps (starts from level 10, not 5)
+    elevationLevel = idx >= 10 && Math.random() < 0.2 ? 1 : 0;
+    
+    // NEW LAYOUT SELECTION - STAR REMOVED (10 types total)
+    const layouts = ['rect', 'diagonal', 'circle', 'multizone', 'spiral', 'cross', 'triangle', 'bullseye', 'lshape', 'wave'];
+    const weights = [22, 18, 12, 10, 10, 10, 8, 5, 8, 7]; // percentages (total=110, star's 10% redistributed)
+    let roll = Math.random() * 110;
+    let cumulative = 0;
+    lotShape = 'rect';
+    for(let i=0; i<layouts.length; i++){
+      cumulative += weights[i];
+      if(roll < cumulative){ lotShape = layouts[i]; break; }
+    }
+    
+    ui.weatherHud.textContent = currentWeather.icon+' '+currentWeather.name;
+    // Layout display removed - now in compact biome line
+
+    // Bigger lot that scales with level SIGNIFICANTLY
+const grow = Math.min(idx, 20); // More growth allowed
+const lotW = TILE*(28 + Math.floor(grow*1.8)); // Much bigger growth (was 1.2)
+const lotH = TILE*(14 + Math.floor(grow*1.4)); // Much bigger growth (was 0.9)
+const lot  = { x:TILE*3, y:TILE*3, w:Math.min(lotW, W - TILE*6), h:Math.min(lotH, H - TILE*6) };
+lotMemo = lot;
+
+    const margin=14;
+    const cx=lot.x+lot.w/2, cy=lot.y+lot.h/2;
+
+    // RECTANGLE
+    if(lotShape==='rect'){
+      const xs=[], ys=[];
+      for(let x=lot.x+margin+36; x<lot.x+lot.w-margin-36; x+=48) xs.push(x);
+      for(let y=lot.y+margin+12; y<lot.y+lot.h-margin-24; y+=36) ys.push(y);
+      gridCols=xs.length; gridRows=ys.length;
+      for(let gx=0;gx<gridCols;gx++) for(let gy=0;gy<gridRows;gy++){
+        const x = lot.x + margin + 12 + gx*48, y = lot.y + margin + 12 + gy*36;
+        const elev = elevationLevel && gy < gridRows/2 ? 1 : 0;
+        spots.push({x,y,w:44,h:30,occupied:false,byPlayer:false,gx,gy,elev});
+      }
+    } 
+    // DIAGONAL
+    else if(lotShape==='diagonal'){
+      const cols=Math.floor(lot.w/48)-1, rows=Math.floor(lot.h/36);
+      gridCols=cols; gridRows=rows;
+      for(let r=0;r<rows;r++){
+        for(let c=0;c<cols;c++){
+          const dx=(r%2)*24, x=lot.x+36+c*48+dx, y=lot.y+24+r*36;
+          if(x>lot.x+20 && x<lot.x+lot.w-50 && y>lot.y+20 && y<lot.y+lot.h-30){
+            const elev = elevationLevel && r < rows/2 ? 1 : 0;
+            spots.push({x,y,w:44,h:30,occupied:false,byPlayer:false,gx:c,gy:r,elev});
+          }
+        }
+      }
+    } 
+    // CIRCLE
+    else if(lotShape==='circle'){
+      const radius=Math.min(lot.w,lot.h)/2-24; const count=24;
+      gridCols=6; gridRows=4;
+      for(let i=0;i<count;i++){
+        const ang=i*PI2/count, x=cx+Math.cos(ang)*radius-18, y=cy+Math.sin(ang)*radius-12;
+        spots.push({x,y,w:44,h:30,occupied:false,byPlayer:false,gx:i,gy:0,angle:ang,elev:0});
+      }
+    }
+    // MULTI-ZONE (3 separate areas)
+    else if(lotShape==='multizone'){
+      const zoneW=lot.w/3-20, zoneH=lot.h-40;
+      gridCols=3; gridRows=4;
+      for(let zone=0;zone<3;zone++){
+        const zx=lot.x+20+zone*(lot.w/3), zy=lot.y+20;
+        const cols=Math.floor(zoneW/48), rows=Math.floor(zoneH/36);
+        for(let r=0;r<rows;r++) for(let c=0;c<cols;c++){
+          const x=zx+c*48+24, y=zy+r*36+18;
+          if(x>lot.x+10 && x<lot.x+lot.w-10){
+            const elev = elevationLevel && zone===1 ? 1 : 0;
+            spots.push({x,y,w:44,h:30,occupied:false,byPlayer:false,gx:zone*cols+c,gy:r,elev});
+          }
+        }
+      }
+    }
+    // SPIRAL
+    else if(lotShape==='spiral'){
+      const count=20, turns=3;
+      gridCols=5; gridRows=4;
+      for(let i=0;i<count;i++){
+        const t=i/count;
+        const ang=t*turns*PI2, r=(Math.min(lot.w,lot.h)/2-40)*t;
+        const x=cx+Math.cos(ang)*r-18, y=cy+Math.sin(ang)*r-12;
+        spots.push({x,y,w:44,h:30,occupied:false,byPlayer:false,gx:i,gy:0,angle:ang,elev:0});
+      }
+    }
+    // CROSS/PLUS
+    else if(lotShape==='cross'){
+      const armLen=Math.min(lot.w,lot.h)/2-40;
+      gridCols=5; gridRows=5;
+      for(let i=0;i<6;i++){
+        const x=cx-armLen+i*(armLen*2/5)-22, y=cy-15;
+        spots.push({x,y,w:44,h:30,occupied:false,byPlayer:false,gx:i,gy:2,elev:0});
+      }
+      for(let i=0;i<6;i++){
+        const x=cx-18, y=cy-armLen+i*(armLen*2/5)-12;
+        if(i!==3) spots.push({x,y,w:44,h:30,occupied:false,byPlayer:false,gx:2,gy:i,elev:0});
+      }
+    }
+    // TRIANGLE
+    else if(lotShape==='triangle'){
+      const base=lot.w-80, height=lot.h-80;
+      gridCols=6; gridRows=4;
+      for(let row=0;row<6;row++){
+        const spotsInRow=6-row;
+        const y=lot.y+40+row*(height/6);
+        for(let i=0;i<spotsInRow;i++){
+          const rowW=base*(spotsInRow/6);
+          const x=cx-rowW/2+i*(rowW/spotsInRow)+rowW/(spotsInRow*2)-18;
+          spots.push({x,y,w:44,h:30,occupied:false,byPlayer:false,gx:i,gy:row,elev:0});
+        }
+      }
+    }
+    // BULLSEYE (concentric circles)
+    else if(lotShape==='bullseye'){
+      const rings=3;
+      gridCols=8; gridRows=rings;
+      for(let ring=0;ring<rings;ring++){
+        const r=(ring+1)*(Math.min(lot.w,lot.h)/2-30)/(rings+0.5);
+        const count=8+ring*4;
+        for(let i=0;i<count;i++){
+          const ang=i*PI2/count;
+          const x=cx+Math.cos(ang)*r-18, y=cy+Math.sin(ang)*r-12;
+          const elev = elevationLevel && ring<1 ? 1 : 0;
+          spots.push({x,y,w:44,h:30,occupied:false,byPlayer:false,gx:i,gy:ring,angle:ang,elev});
+        }
+      }
+    }
+    // L-SHAPE
+    else if(lotShape==='lshape'){
+      gridCols=6; gridRows=6;
+      for(let r=0;r<3;r++) for(let c=0;c<6;c++){
+        const x=lot.x+40+c*48, y=lot.y+40+r*36;
+        spots.push({x,y,w:44,h:30,occupied:false,byPlayer:false,gx:c,gy:r,elev:0});
+      }
+      for(let r=3;r<6;r++) for(let c=0;c<3;c++){
+        const x=lot.x+40+c*48, y=lot.y+40+r*36;
+        const elev = elevationLevel && c<2 ? 1 : 0;
+        spots.push({x,y,w:44,h:30,occupied:false,byPlayer:false,gx:c,gy:r,elev});
+      }
+    }
+    // WAVE (S-curve)
+    else if(lotShape==='wave'){
+      const count=18;
+      gridCols=6; gridRows=3;
+      for(let i=0;i<count;i++){
+        const t=i/(count-1);
+        const x=lot.x+40+t*(lot.w-80)-18;
+        const amplitude=(lot.h-80)/3;
+        const y=cy+Math.sin(t*PI2*2)*amplitude-12;
+        spots.push({x,y,w:44,h:30,occupied:false,byPlayer:false,gx:i,gy:Math.floor(i/6),elev:0});
+      }
+    }
+
+    // spawn points
+    spawns.push({x:lot.x-40,y:lot.y+lot.h/2,angle:0},{x:lot.x+lot.w+40,y:lot.y+40,angle:Math.PI});
+    // --- Entrances (always present) + interior corridors (kept clear)
+const GATE_W = 90; // gate opening height
+const entranceLeft  = { x: lot.x-6,       y: lot.y + lot.h/2 - GATE_W/2, w: 12, h: GATE_W };
+const entranceRight = { x: lot.x+lot.w-6, y: lot.y + 40      - GATE_W/2, w: 12, h: GATE_W };
+const entrances = [entranceLeft, entranceRight];
+
+// Two clear interior lanes you can drive through from each gate
+const laneW = Math.max(180, lot.w * 0.45);
+const corridors = [
+  { x: lot.x,                 y: entranceLeft.y + entranceLeft.h/2  - 24, w: laneW,             h: 48 },
+  { x: lot.x + lot.w - laneW, y: entranceRight.y + entranceRight.h/2 - 24, w: laneW,            h: 48 }
+];
+
+// helpers
+function rectIntersect(a,b){ return a.x < b.x+b.w && a.x+a.w > b.x && a.y < b.y+b.h && a.y+a.h > b.y; }
+function intersectsAny(r, arr){ return arr.some(b => rectIntersect(r,b)); }
+function boxesOverlapSpot(bx){ return spots.some(s => rectIntersect(bx, {x:s.x,y:s.y,w:s.w,h:s.h})); }
+
+
+    // static obstacles (boxes / buoys) - increases with level (SLOWER GROWTH)
+    const obstacleChance = Math.min(0.85, 0.3 + idx * 0.008); // Starts 30%, reaches 85% at level 70
+    if(Math.random() < obstacleChance){
+      const baseObstacles = Math.floor(idx * 0.25) + 2; // Level 5: 3, Level 20: 7, Level 100: 27
+      const tries = Math.min(30, baseObstacles + rndi(0, 2));
+      for(let i=0;i<tries;i++){
+        const w=16+Math.random()*8, h=16+Math.random()*8, x=lot.x+30+Math.random()*(lot.w-60), y=lot.y+30+Math.random()*(lot.h-60);
+        const cand = { x: x - w/2, y: y - h/2, w, h };
+if (!boxesOverlapSpot(cand) && !intersectsAny(cand, corridors)) {
+  boxes.push(cand);
+}
+
+      }
+    }
+    
+    // mud zones in forest - more zones at higher levels (SLOWER GROWTH)
+    // COLLAPSING FLOOR HOLES — deadly pits (start at Level 5, grow up to 7 holes)
+if (idx >= 4 && idx < 50) { // idx 4 == Level 5
+  const holeCount = Math.min(7, Math.max(1, idx - 3)); // L5:1, L6:2, … capped at 7
+  for (let i = 0; i < holeCount; i++) {
+    let holeX, holeY, attempts = 0;
+    let validSpot = false;
+    while (!validSpot && attempts < 200) {
+      holeX = lot.x + rnd(80, lot.w - 80);
+      holeY = lot.y + rnd(80, lot.h - 80);
+      attempts++;
+      validSpot = true;
+      for (const s of spots) {
+        const dx = holeX - (s.x + s.w/2);
+        const dy = holeY - (s.y + s.h/2);
+        if (Math.hypot(dx, dy) < 70) { validSpot = false; break; }
+      }
+      if (validSpot && spawns.length > 0) {
+        const dx = holeX - spawns[0].x, dy = holeY - spawns[0].y;
+        if (Math.hypot(dx, dy) < 150) validSpot = false;
+      }
+      if (validSpot) {
+        for (const h of holes) {
+          const dx = holeX - (h.x + h.w/2);
+          const dy = holeY - (h.y + h.h/2);
+          if (Math.hypot(dx, dy) < 80) { validSpot = false; break; }
+        }
+      }
+    }
+    holes.push({ x: holeX - 25, y: holeY - 25, w: 50, h: 50, r: 25 });
+  }
+  console.log(`Level ${idx+1}: Created ${holes.length} hole(s)`);
+}
+
+    
+    // DETERMINE GATE SIDE EARLY (needed for moving obstacles)
+    const gateSide = ['left','right','top','bottom'][rndi(0,3)];
+    
+    // MOVING OBSTACLES - scale for 50 levels (always present)
+    const baseMovers = 2 + Math.floor(idx * 0.2); // Level 5: 3, Level 25: 7, Level 50: 12
+    const normalMovers = Math.min(15, baseMovers + rndi(0, 2));
+    
+    // SHOOTING OBSTACLES - START FROM LEVEL 1 (for testing)
+    let shootingMovers = 0;
+    if(idx >= 13 && idx < 22) {
+      // Level 1=2 shooters (easy to see)
+      shootingMovers = 2;
+    } else if(idx >= 22) {
+      // After level 22, shooting obstacles can appear based on combo chance
+      const comboChance = idx >= 42 ? 0.80 : 0.45;
+      if(Math.random() < comboChance) {
+        shootingMovers = rndi(2, 4); // 2-4 shooters if combo active
+      }
+    }
+    
+    const totalMovers = normalMovers + shootingMovers;
+    let shootersCreated = 0;
+    
+    for(let i=0;i<totalMovers;i++){
+      const shouldShoot = shootersCreated < shootingMovers;
+      const type = shouldShoot ? 'car' : (Math.random()>.5 ? 'pedestrian' : 'car');
+      if(shouldShoot && type === 'car') shootersCreated++;
+      
+      const w = type==='car'?40:10, h=type==='car'?20:10;
+      let x, y, vx, vy;
+      
+      // Player starts at approximately x=80, y=H/2 (middle-left)
+      const PLAYER_START_X = 80;
+      const PLAYER_START_Y = H/2;
+      const SAFE_ZONE = 120; // Don't spawn obstacles within 120px of player start
+      
+      // Choose a random side that is NOT the gate side
+      const sides = ['left', 'right', 'top', 'bottom'].filter(s => s !== gateSide);
+      const side = sides[rndi(0, sides.length-1)];
+      
+      if(side === 'left'){ // from left
+        x = -50; 
+        // Avoid spawning near player's Y position
+        do {
+          y = lot.y + rnd(30, lot.h-30);
+        } while(Math.abs(y - PLAYER_START_Y) < SAFE_ZONE);
+        vx = rnd(50,100); vy = 0;
+      } else if(side === 'right'){ // from right
+        x = W+50; 
+        // Can spawn anywhere on right since player starts on left
+        y = lot.y + rnd(30, lot.h-30);
+        vx = -rnd(50,100); vy = 0;
+      } else if(side === 'top'){ // from top
+        // Avoid spawning near player's X position
+        do {
+          x = lot.x + rnd(30, lot.w-30);
+        } while(Math.abs(x - PLAYER_START_X) < SAFE_ZONE);
+        y = -50;
+        vx = 0; vy = rnd(50,100);
+      } else { // from bottom
+        // Avoid spawning near player's X position
+        do {
+          x = lot.x + rnd(30, lot.w-30);
+        } while(Math.abs(x - PLAYER_START_X) < SAFE_ZONE);
+        y = H+50;
+        vx = 0; vy = -rnd(50,100);
+      }
+      
+      const canShoot = shouldShoot && type === 'car';
+      moving.push({x,y,w,h,vx,vy,type,canShoot,shootCooldown:0});
+    }
+  // ----- EXTRA PROPS: bars/fence, lamps, islands, bumps, cones, trees
+props.length = 0;
+const addProp = p => props.push(p);
+
+// A) Perimeter bars/fence segments (collidable) + BIG ENTRANCE GATE
+{
+  const seg = 36;
+
+  // gateSide already declared earlier (before moving obstacles)
+  
+  // gate size: big & readable
+  const gateW = Math.max(120, Math.floor((gateSide==='top'||gateSide==='bottom' ? lot.w : lot.h) * 0.28));
+
+  // gate span (start..end) along the chosen side
+  let gateStart=0, gateEnd=0;
+  if (gateSide==='top' || gateSide==='bottom'){
+    gateStart = rndi(lot.x + 40, lot.x + lot.w - 40 - gateW);
+    gateEnd   = gateStart + gateW;
+  } else {
+    gateStart = rndi(lot.y + 40, lot.y + lot.h - 40 - gateW);
+    gateEnd   = gateStart + gateW;
+  }
+
+  // TOP & BOTTOM fences (skip segments overlapping the gate)
+  for (let x=lot.x; x<lot.x+lot.w; x+=seg){
+    const w=seg-4;
+    const segStart=x, segEnd=x+w;
+
+    // top
+    if (!(gateSide==='top' && segEnd>gateStart && segStart<gateEnd)){
+      addProp({type:'bar', x, y:lot.y-6, w, h:6, collide:true, shape:'rect'});
+    }
+    // bottom
+    if (!(gateSide==='bottom' && segEnd>gateStart && segStart<gateEnd)){
+      addProp({type:'bar', x, y:lot.y+lot.h, w, h:6, collide:true, shape:'rect'});
+    }
+  }
+
+  // LEFT & RIGHT fences (skip segments overlapping the gate)
+  for (let y=lot.y; y<lot.y+lot.h; y+=seg){
+    const h=seg-4;
+    const segStart=y, segEnd=y+h;
+
+    // left
+    if (!(gateSide==='left' && segEnd>gateStart && segStart<gateEnd)){
+      addProp({type:'bar', x:lot.x-6, y, w:6, h, collide:true, shape:'rect'});
+    }
+    // right
+    if (!(gateSide==='right' && segEnd>gateStart && segStart<gateEnd)){
+      addProp({type:'bar', x:lot.x+lot.w, y, w:6, h, collide:true, shape:'rect'});
+    }
+  }
+
+  // Pretty, soft-colored gate stripes (non-colliding) + spawn aligned with the gate
+  const stripeColW = 8, stripeColH = 22;  // rendered later; visual only
+  if (gateSide==='left' || gateSide==='right'){
+    const gy = gateStart, gh = gateW;
+    const sx = (gateSide==='left' ? lot.x-18 : lot.x+lot.w+4);
+    for (let y=gy; y<gy+gh; y+=14){
+      addProp({type:'gateStripe', x:sx, y, w:22, h:8, collide:false, shape:'rect'});
+    }
+    // entry label
+    const labelY = gy + gh/2;
+    addProp({type:'gateSign', x:(gateSide==='left'? lot.x-12 : lot.x+lot.w+12), y:labelY, side:gateSide, collide:false, shape:'rect'});
+
+    // spawn from the gate
+    spawns.length = 0;
+    spawns.push({
+      x: (gateSide==='left' ? lot.x-40 : lot.x+lot.w+40),
+      y: labelY,
+      angle: (gateSide==='left' ? 0 : Math.PI)
+    });
+
+  } else {
+    const gx = gateStart, gw = gateW;
+    const sy = (gateSide==='top' ? lot.y-18 : lot.y+lot.h+4);
+    for (let x=gx; x<gx+gw; x+=18){
+      addProp({type:'gateStripe', x, y:sy, w:8, h:22, collide:false, shape:'rect'});
+    }
+    // entry label
+    const labelX = gx + gw/2;
+    addProp({type:'gateSign', x:labelX, y:(gateSide==='top'? lot.y-12 : lot.y+lot.h+12), side:gateSide, collide:false, shape:'rect'});
+
+    // spawn from the gate
+    spawns.length = 0;
+    spawns.push({
+      x: labelX,
+      y: (gateSide==='top' ? lot.y-40 : lot.y+lot.h+40),
+      angle: (gateSide==='top' ? Math.PI/2 : -Math.PI/2)
+    });
+  }
+}
+
+
+// B) Lamp posts along edges (decoration) — FEWER LIGHTS
+{
+  const lamppoints = [
+    [lot.x+16, lot.y+16],
+    [lot.x+lot.w-16, lot.y+16],
+    [lot.x+16, lot.y+lot.h-16],
+    [lot.x+lot.w-16, lot.y+lot.h-16]
+  ];
+
+  // wider spacing + random skip so there are fewer lights overall
+  const step = nightMode ? 120 : 200; // More lamps in night mode!
+  const spawnChance = nightMode ? 0.7 : 0.35; // Higher chance in night mode
+  for (let x=lot.x+60; x<lot.x+lot.w-60; x+=step) {
+    if (Math.random() < spawnChance) lamppoints.push([x, lot.y+22]);
+    if (Math.random() < spawnChance) lamppoints.push([x, lot.y+lot.h-22]);
+  }
+  for (let y=lot.y+60; y<lot.y+lot.h-60; y+=step) {
+    if (Math.random() < spawnChance) lamppoints.push([lot.x+22, y]);
+    if (Math.random() < spawnChance) lamppoints.push([lot.x+lot.w-22, y]);
+  }
+
+  for (const [x,y] of lamppoints) addProp({type:'lamp', x, y, r:8, collide:false, shape:'circle'});
+}
+
+
+// C) Interior islands/medians (collidable) — avoid corridors & spots
+{
+  const islandCount = 1 + Math.floor(idx/5); // Level 0-4: 1, Level 20: 5, Level 100: 21
+  for (let i=0;i<islandCount;i++){
+    let placed=false, guard=0;
+    while(!placed && guard++<20){
+      const iw = rndi(80, 140), ih = rndi(18, 28);
+      const ix = rndi(lot.x+40, lot.x+lot.w-40-iw);
+      const iy = rndi(lot.y+40, lot.y+lot.h-40-ih);
+      const cand = {x:ix, y:iy, w:iw, h:ih};
+      if (!intersectsAny(cand, corridors) && !boxesOverlapSpot(cand)) {
+        addProp({type:'island', ...cand, collide:true, shape:'rect'});
+        placed = true;
+      }
+    }
+  }
+}
+
+// D) Speed bumps — split to leave a center gap; avoid corridors
+{
+  const bumpRows = Math.max(1, Math.floor(gridRows/3) || 1);
+  for (let r=0; r<bumpRows; r++){
+    const by = lot.y + 50 + r * ((lot.h-100)/Math.max(1,bumpRows-1));
+    const gapX1 = lot.x + lot.w*0.48, gapX2 = lot.x + lot.w*0.52;
+    const left  = {x:lot.x+40, y:by, w:gapX1-(lot.x+40), h:6};
+    const right = {x:gapX2,    y:by, w:(lot.x+lot.w-40)-gapX2, h:6};
+    if (!intersectsAny(left, corridors))  addProp({type:'bump', ...left,  collide:true, shape:'rect', slow:true});
+    if (!intersectsAny(right, corridors)) addProp({type:'bump', ...right, collide:true, shape:'rect', slow:true});
+  }
+}
+
+// E) Cones near red targets — avoid corridors
+if (currentRule.type==='red'){
+  for (const s of redSpots){
+    const n = rndi(2,4);
+    for (let k=0;k<n;k++){
+      const cx = s.x + s.w/2 + rndi(-22,22);
+      const cy = s.y + s.h/2 + rndi(-18,18);
+      const cand = {x:cx-4, y:cy-4, w:8, h:8};
+      if (!intersectsAny(cand, corridors)) addProp({type:'cone', ...cand, collide:true, shape:'rect'});
+    }
+  }
+}
+
+// F) Trees — outside the lot, never in corridors
+{
+  const treeBand = 48;
+  const treeCount = 12 + Math.floor(idx*0.3); // Level 0: 12, Level 20: 18, Level 100: 42
+  for (let i=0;i<treeCount;i++){
+    let tx, ty;
+    if (Math.random() < 0.5){
+      tx = rndi(lot.x - treeBand - 60, lot.x - 12);
+      ty = rndi(lot.y - treeBand, lot.y + lot.h + treeBand);
+    } else {
+      tx = rndi(lot.x + lot.w + 12, lot.x + lot.w + treeBand + 60);
+      ty = rndi(lot.y - treeBand, lot.y + lot.h + treeBand);
+    }
+    if (Math.random() < 0.4){
+      tx = rndi(lot.x - treeBand, lot.x + lot.w + treeBand);
+      ty = (Math.random()<0.5? rndi(lot.y - treeBand - 60, lot.y - 12) : rndi(lot.y + lot.h + 12, lot.y + lot.h + treeBand + 60));
+    }
+    const cand = {x:tx-12, y:ty-12, w:24, h:24};
+    if (!intersectsAny(cand, corridors)) {
+      addProp({type:'tree', x:tx, y:ty, r:rndi(10,14), collide:true, shape:'circle'});
+    }
+  }
+}
+// G) Clear start zone & entry corridor — no trees/obstacles near spawn
+{
+  // use the first spawn (the entrance) as the start
+  const start = spawns[0];
+  if (start) {
+    const SAFE_R = 120; // radius around spawn
+    const keepVisual = new Set(['gateStripe','gateSign']); // keep gate visuals
+
+    // helper: radial keep/discard
+    const farFromStart = (px,py) => {
+      const dx = px - start.x, dy = py - start.y;
+      return (dx*dx + dy*dy) > SAFE_R*SAFE_R;
+    };
+
+    // build a straight corridor from the gate toward the lot center
+    const lot = lotMemo;
+    const cx = lot.x + lot.w/2, cy = lot.y + lot.h/2;
+
+    // corridor rectangle depending on which side you enter from
+    let rx1, ry1, rx2, ry2;
+    const halfW = 50, halfH = 50; // corridor thickness
+
+    if (start.x < lot.x) { // from left
+      rx1 = start.x - 20;      ry1 = start.y - halfH;
+      rx2 = lot.x + Math.min(160, lot.w/3); ry2 = start.y + halfH;
+    } else if (start.x > lot.x + lot.w) { // from right
+      rx1 = lot.x + lot.w - Math.min(160, lot.w/3); ry1 = start.y - halfH;
+      rx2 = start.x + 20;      ry2 = start.y + halfH;
+    } else if (start.y < lot.y) { // from top
+      rx1 = start.x - halfW; ry1 = start.y - 20;
+      rx2 = start.x + halfW; ry2 = lot.y + Math.min(140, lot.h/3);
+    } else { // from bottom
+      rx1 = start.x - halfW; ry1 = lot.y + lot.h - Math.min(140, lot.h/3);
+      rx2 = start.x + halfW; ry2 = start.y + 20;
+    }
+
+    const rectsOverlap = (ax,ay,aw,ah, bx,by,bw,bh) =>
+      !(ax+aw < bx || ax > bx+bw || ay+ah < by || ay > by+bh);
+
+    const inCorridor = (x,y,w=0,h=0) => rectsOverlap(x,y,w,h, rx1,ry1, rx2-rx1, ry2-ry1);
+
+    // 1) Clear PROPS (trees, bars, islands, bumps, cones) near spawn & in corridor
+    props = props.filter(p => {
+      if (keepVisual.has(p.type)) return true; // keep the gate visuals
+      // get a bounding box for each prop
+      let px, py, pw=0, ph=0;
+      if (p.shape === 'circle') {
+        px = p.x - p.r; py = p.y - p.r; pw = ph = p.r*2;
+      } else {
+        px = p.x; py = p.y; pw = p.w||0; ph = p.h||0;
+      }
+      const centerX = px + pw/2, centerY = py + ph/2;
+      const nearStart = !farFromStart(centerX, centerY);
+      const inEntry = inCorridor(px,py,pw,ph);
+      return !(nearStart || inEntry);
+    });
+
+    // 2) Clear BOXES (crates/buoys)
+    boxes = boxes.filter(b => {
+      const bx = b.x + b.w/2, by = b.y + b.h/2;
+      const nearStart = !farFromStart(bx,by);
+      const inEntry = inCorridor(b.x,b.y,b.w,b.h);
+      return !(nearStart || inEntry);
+    });
+
+    // 3) Clear MUD near spawn
+    mudZones = mudZones.filter(m => {
+      const mx = m.x + m.w/2, my = m.y + m.h/2;
+      const nearStart = !farFromStart(mx,my);
+      const inEntry = inCorridor(m.x,m.y,m.w,m.h);
+      return !(nearStart || inEntry);
+    });
+
+    // 4) Nudge away MOVING actors initially near spawn/corridor
+    moving = moving.filter(o => {
+      const ox = o.x, oy = o.y;
+      const nearStart = !farFromStart(ox,oy);
+      const inEntry = inCorridor(o.x - o.w/2, o.y - o.h/2, o.w, o.h);
+      return !(nearStart || inEntry);
+    });
+  }
+}
+
+
+  }
+
+  // ----- Vehicle rendering & class
+  function roundRect(g,x,y,w,h,r,fill){ g.beginPath(); g.moveTo(x+r,y); g.arcTo(x+w,y,x+w,y+h,r); g.arcTo(x+w,y+h,x,y+h,r); g.arcTo(x,y+h,x,y,r); g.arcTo(x,y,x+w,y,r); g.closePath(); if(fill){ g.fillStyle=fill; g.fill(); } }
+  function drawVehicle(g,color,kind){
+    g.save();
+    g.scale(VEHICLE_SCALE, VEHICLE_SCALE);
+    
+    // Bouncy cartoon shadow
+    g.globalAlpha=.4; 
+    g.fillStyle='#000'; 
+    g.beginPath(); 
+    g.ellipse(0, kind==='boat'?24:28, kind==='truck'?26:22, kind==='truck'?38:32, 0, 0, PI2); 
+    g.fill(); 
+    g.globalAlpha=1;
+    
+    g.translate(0,-(kind==='boat'?6:10));
+    const w=(kind==='truck'?48:(kind==='boat'?32:40)), h=(kind==='truck'?76:(kind==='boat'?60:68));
+    
+    // Cartoon outline (thicker, darker)
+    g.strokeStyle='#0a0d12';
+    g.lineWidth=3;
+    g.beginPath();
+    g.roundRect(-w/2,-h/2,w,h,14);
+    g.stroke();
+    
+    // Main body - brighter, more saturated colors
+    const brightColor = shadeColor(color, 20);
+    const grad = g.createLinearGradient(0,-h/2,0,h/2);
+    grad.addColorStop(0, brightColor);
+    grad.addColorStop(0.5, color);
+    grad.addColorStop(1, shadeColor(color, -20));
+    roundRect(g,-w/2,-h/2,w,h,14,grad);
+    
+    // Big cartoon wheels with shine
+    g.save();
+    const wheelW = (kind==='truck'? 13 : 11);
+    const wheelH = (kind==='truck'? 20 : 18);
+    const wheelPositions = [
+      [-20, -24], [20, -24],
+      [-20, 24], [20, 24]
+    ];
+    
+    for(const [wx, wy] of wheelPositions) {
+      // Wheel shadow
+      g.fillStyle = '#0a0d12';
+      g.beginPath();
+      g.ellipse(wx, wy+1, wheelW/2+1, wheelH/2+1, 0, 0, PI2);
+      g.fill();
+      
+      // Wheel body
+      g.fillStyle = '#2a2f38';
+      g.beginPath();
+      g.ellipse(wx, wy, wheelW/2, wheelH/2, 0, 0, PI2);
+      g.fill();
+      
+      // Wheel rim shine
+      g.fillStyle = '#4a5060';
+      g.beginPath();
+      g.ellipse(wx-1, wy-2, wheelW/3, wheelH/3, 0, 0, PI2);
+      g.fill();
+    }
+    g.restore();
+    
+    // BIG CARTOON EYES (front windshield)
+    if(kind==='boat') {
+      // Boat eyes
+      drawCartoonEye(g, -6, -4, 5);
+      drawCartoonEye(g, 6, -4, 5);
+    } else if(kind==='truck') {
+      // Truck eyes
+      drawCartoonEye(g, -10, -26, 7);
+      drawCartoonEye(g, 10, -26, 7);
+    } else {
+      // Car eyes  
+      drawCartoonEye(g, -8, -20, 6);
+      drawCartoonEye(g, 8, -20, 6);
+    }
+    
+    // Cute smile (taillights as smile)
+    g.strokeStyle='#ff6b7a';
+    g.lineWidth=3;
+    g.lineCap='round';
+    g.beginPath();
+    g.arc(0, 30, 8, 0.2, Math.PI-0.2);
+    g.stroke();
+    
+    // Big bright headlights
+    g.shadowBlur=12; 
+    g.shadowColor='#ffe478';
+    g.fillStyle='#ffed4e';
+    g.beginPath();
+    g.ellipse(-8, -h/2+4, 5, 3, 0, 0, PI2);
+    g.fill();
+    g.beginPath();
+    g.ellipse(8, -h/2+4, 5, 3, 0, 0, PI2);
+    g.fill();
+    g.shadowBlur=0;
+    
+    // Shiny highlight on body
+    g.fillStyle='rgba(255,255,255,0.4)';
+    g.beginPath();
+    g.ellipse(-w/4, -h/3, w/3, h/5, -0.3, 0, PI2);
+    g.fill();
+    
+    g.restore();
+  }
+  
+  // Helper function to draw cartoon eyes
+  function drawCartoonEye(g, x, y, size) {
+    // White of eye
+    g.fillStyle='#ffffff';
+    g.strokeStyle='#0a0d12';
+    g.lineWidth=2;
+    g.beginPath();
+    g.ellipse(x, y, size, size*1.1, 0, 0, PI2);
+    g.fill();
+    g.stroke();
+    
+    // Pupil (looking slightly forward)
+    g.fillStyle='#1a2332';
+    g.beginPath();
+    g.ellipse(x, y-1, size*0.5, size*0.6, 0, 0, PI2);
+    g.fill();
+    
+    // Shine/sparkle in eye
+    g.fillStyle='#ffffff';
+    g.beginPath();
+    g.arc(x+1, y-2, size*0.25, 0, PI2);
+    g.fill();
+  }
+  
+// ----- ANGRY CAR ENEMY CLASS (reworked for scaling)
+class AngryVehicle {
+  constructor(x, y, lotBounds, level = 0, isPatrol = false, patrol1 = null, patrol2 = null) {
+    this.x = x;
+    this.y = y;
+    this.rot = Math.random() * Math.PI * 2;
+    this.speed = 0;
+    this.level = level;
+    this.size = 0.7; // Smaller than regular cars
+    this.w = 40 * this.size;
+    this.h = 68 * this.size;
+    this.lotBounds = lotBounds;
+    this.color = '#ff3347'; // Angry red
+
+    // Force patrol mode if isPatrol is true (levels 22-32)
+    this.mode = isPatrol ? 'patrol' : ((level < 50) ? 'patrol' : 'chase');
+
+    // Shared mild parameters (kept tame)
+    this.turnSpeed = 1.2; // gentle turning by default
+    this.chaseRadius = 160; // modest awareness when chasing
+
+    if (this.mode === 'patrol') {
+      // Use custom patrol points if provided, otherwise generate random ones
+      if(patrol1 && patrol2) {
+        this.patrolPoints = [patrol1, patrol2];
+      } else {
+        // Two fixed waypoints inside the lot; ping-pong between them
+        const m = 40; // margin from edges
+        this.patrolPoints = [
+          { x: lotBounds.x + m + Math.random() * (lotBounds.w - m * 2),
+            y: lotBounds.y + m + Math.random() * (lotBounds.h - m * 2) },
+          { x: lotBounds.x + m + Math.random() * (lotBounds.w - m * 2),
+            y: lotBounds.y + m + Math.random() * (lotBounds.h - m * 2) }
+        ];
+      }
+      this.patrolIndex = 0;
+      this.targetSpeed = 38; // calm cruising
+    } else {
+      // Slow chase at high levels
+      // Hard caps so it never becomes oppressive
+      this.targetSpeed = Math.min(42, 22 + level * 0.1);   // e.g. L50≈27, L100≈32
+      this.turnSpeed   = Math.min(1.8, 0.9 + level * 0.01); // e.g. L50≈1.4, L100≈1.9
+      this.intelligence = 0.25; // modest prediction; we keep it low so it's fair
+    }
+  }
+
+  rect() {
+    return {
+      x: this.x - this.w * 0.25,
+      y: this.y - this.h * 0.25,
+      w: this.w * 0.5,
+      h: this.h * 0.5
+    };
+  }
+
+  update(dt, playerX, playerY) {
+    if (this.mode === 'patrol') {
+      // --- SIMPLE PATROL: move between two points and bounce in lot ---
+      const tgt = this.patrolPoints[this.patrolIndex];
+      const dx = tgt.x - this.x;
+      const dy = tgt.y - this.y;
+      const dist = Math.hypot(dx, dy);
+
+      // Aim at current waypoint
+      const targetAngle = Math.atan2(dx, -dy);
+
+      // Smooth rotation
+      let angleDiff = targetAngle - this.rot;
+      while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+      while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+      this.rot += Math.sign(angleDiff) * Math.min(Math.abs(angleDiff), this.turnSpeed * dt);
+
+      // Ease to patrol speed
+      if (this.speed < this.targetSpeed) this.speed += 100 * dt;
+      else this.speed -= 80 * dt;
+      this.speed = clamp(this.speed, 0, this.targetSpeed);
+
+      // Move forward
+      this.x += Math.sin(this.rot) * this.speed * dt;
+      this.y += -Math.cos(this.rot) * this.speed * dt;
+
+      // Switch waypoint when close
+      if (dist < 16) {
+        this.patrolIndex = (this.patrolIndex ^ 1); // 0<->1
+      }
+
+      // Keep inside lot bounds with soft redirects
+      const margin = 28;
+      if (this.x < this.lotBounds.x + margin) this.rot = Math.PI / 2;
+      if (this.x > this.lotBounds.x + this.lotBounds.w - margin) this.rot = -Math.PI / 2;
+      if (this.y < this.lotBounds.y + margin) this.rot = Math.PI;
+      if (this.y > this.lotBounds.y + this.lotBounds.h - margin) this.rot = 0;
+
+      return;
+    }
+
+    // --- SLOW CHASE (level 50+) ---
+    const dx = playerX - this.x;
+    const dy = playerY - this.y;
+    const distToPlayer = Math.hypot(dx, dy);
+
+    let targetAngle;
+
+    if (distToPlayer < this.chaseRadius) {
+      // Mild prediction (kept subtle)
+      if (this.intelligence > 0 && Math.random() < this.intelligence * 0.4 && typeof player !== 'undefined') {
+        // Predict a tiny step ahead; scaled small so it stays fair
+        const pvx = Math.sin(player.rot) * player.speed * 0.02;
+        const pvy = -Math.cos(player.rot) * player.speed * 0.02;
+        targetAngle = Math.atan2((playerX + pvx) - this.x, -((playerY + pvy) - this.y));
+      } else {
+        targetAngle = Math.atan2(dx, -dy);
+      }
+      // keep targetSpeed as the slow cap set in constructor
+    } else {
+      // Drift gently toward lot center when far
+      const cx = this.lotBounds.x + this.lotBounds.w / 2;
+      const cy = this.lotBounds.y + this.lotBounds.h / 2;
+      targetAngle = Math.atan2(cx - this.x, -(cy - this.y));
+      // slightly slower while roaming
+      this.targetSpeed = Math.max(24, this.targetSpeed - 6);
+    }
+
+    // Smooth rotation (slow)
+    let angleDiff = targetAngle - this.rot;
+    while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+    while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+    this.rot += Math.sign(angleDiff) * Math.min(Math.abs(angleDiff), this.turnSpeed * dt);
+
+    // Accelerate/decelerate toward capped slow speed
+    if (this.speed < this.targetSpeed) this.speed += 90 * dt;
+    else this.speed -= 70 * dt;
+    this.speed = clamp(this.speed, 0, this.targetSpeed);
+
+    // Move
+    this.x += Math.sin(this.rot) * this.speed * dt;
+    this.y += -Math.cos(this.rot) * this.speed * dt;
+
+    // Keep inside lot bounds with soft redirects
+    const margin = 28;
+    if (this.x < this.lotBounds.x + margin) this.rot = Math.PI / 2;
+    if (this.x > this.lotBounds.x + this.lotBounds.w - margin) this.rot = -Math.PI / 2;
+    if (this.y < this.lotBounds.y + margin) this.rot = Math.PI;
+    if (this.y > this.lotBounds.y + this.lotBounds.h - margin) this.rot = 0;
+  }
+
+  draw() {
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this.rot);
+
+    // Draw small angry car with red eyes (unchanged visuals)
+    ctx.save();
+    ctx.scale(this.size, this.size);
+
+    // Shadow
+    ctx.globalAlpha = 0.4;
+    ctx.fillStyle = '#000';
+    ctx.beginPath();
+    ctx.ellipse(0, 28, 22, 32, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+
+    ctx.translate(0, -10);
+    const w = 40, h = 68;
+
+    // Angry outline
+    ctx.strokeStyle = '#8b0000';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.roundRect(-w/2, -h/2, w, h, 14);
+    ctx.stroke();
+
+    // Body gradient
+    const grad = ctx.createLinearGradient(0, -h/2, 0, h/2);
+    grad.addColorStop(0, '#ff4757');
+    grad.addColorStop(0.5, '#ff3347');
+    grad.addColorStop(1, '#d63031');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.roundRect(-w/2, -h/2, w, h, 14);
+    ctx.fill();
+
+    // Eyes + frown
+    this.drawAngryEye(ctx, -8, -20, 6);
+    this.drawAngryEye(ctx, 8, -20, 6);
+
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.arc(0, 35, 6, Math.PI + 0.5, -0.5);
+    ctx.stroke();
+
+    // Red headlights
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = '#ff0000';
+    ctx.fillStyle = '#ff0000';
+    ctx.beginPath();
+    ctx.ellipse(-8, -h/2 + 4, 5, 3, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(8, -h/2 + 4, 5, 3, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    ctx.restore();
+
+    // Subtle aura
+    const pulse = Math.sin(Date.now() / 200) * 0.3 + 0.7;
+    ctx.globalAlpha = pulse * 0.4;
+    ctx.strokeStyle = '#ff3347';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(0, 0, 35, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  drawAngryEye(g, x, y, size) {
+    g.fillStyle = '#ffcccc';
+    g.strokeStyle = '#8b0000';
+    g.lineWidth = 2;
+    g.beginPath();
+    g.ellipse(x, y, size, size * 1.1, 0, 0, Math.PI * 2);
+    g.fill();
+    g.stroke();
+
+    g.fillStyle = '#ff0000';
+    g.beginPath();
+    g.ellipse(x, y, size * 0.6, size * 0.7, 0, 0, Math.PI * 2);
+    g.fill();
+
+    g.strokeStyle = '#8b0000';
+    g.lineWidth = 2;
+    g.lineCap = 'round';
+    g.beginPath();
+    g.moveTo(x - size * 0.8, y - size * 1.3);
+    g.lineTo(x + size * 0.4, y - size * 0.9);
+    g.stroke();
+  }
+}
+
+  // ----- DRAGON class (levels 32+) - shoots fireballs that create burning holes
+  class Dragon {
+    constructor(lotBounds, level) {
+      this.lotBounds = lotBounds;
+      this.level = level;
+      
+      // Dragon sits outside the lot on one of 4 sides
+      const side = ['left', 'right', 'top', 'bottom'][rndi(0, 3)];
+      this.side = side;
+      
+      if(side === 'left') {
+        this.x = lotBounds.x - 80;
+        this.y = lotBounds.y + lotBounds.h / 2;
+      } else if(side === 'right') {
+        this.x = lotBounds.x + lotBounds.w + 80;
+        this.y = lotBounds.y + lotBounds.h / 2;
+      } else if(side === 'top') {
+        this.x = lotBounds.x + lotBounds.w / 2;
+        this.y = lotBounds.y - 80;
+      } else {
+        this.x = lotBounds.x + lotBounds.w / 2;
+        this.y = lotBounds.y + lotBounds.h + 80;
+      }
+      
+      this.size = 60;
+      this.fireballCooldown = 0;
+    }
+    
+    // Shoot a fireball towards a random spot in the lot
+    shootFireball() {
+      // Shoot 2 fireballs at different random targets
+      for(let i = 0; i < 2; i++) {
+        const targetX = this.lotBounds.x + rnd(60, this.lotBounds.w - 60);
+        const targetY = this.lotBounds.y + rnd(60, this.lotBounds.h - 60);
+        
+        const dx = targetX - this.x;
+        const dy = targetY - this.y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        const speed = 200; // pixels per second
+        
+        fireballs.push({
+          x: this.x,
+          y: this.y,
+          vx: (dx / dist) * speed,
+          vy: (dy / dist) * speed,
+          targetX,
+          targetY,
+          life: dist / speed, // Time to reach target
+          age: 0,
+          size: 12
+        });
+        
+        console.log(`Dragon shoots fireball ${i+1} to (${Math.round(targetX)}, ${Math.round(targetY)})`);
+      }
+    }
+    
+    update(dt) {
+      // Dragon doesn't move, just waits to shoot
+      this.fireballCooldown -= dt;
+    }
+    
+    draw() {
+      ctx.save();
+      ctx.translate(this.x, this.y);
+      
+      const pulse = Math.sin(Date.now() / 300) * 0.1 + 0.9;
+      const wingFlap = Math.sin(Date.now() / 500) * 0.2;
+      
+      // === WINGS (behind body) ===
+      ctx.fillStyle = '#d32f2f';
+      ctx.strokeStyle = '#b71c1c';
+      ctx.lineWidth = 3;
+      
+      // Left wing - simple rounded triangle
+      ctx.save();
+      ctx.rotate(wingFlap);
+      ctx.beginPath();
+      ctx.moveTo(-15, -5);
+      ctx.lineTo(-50, -35);
+      ctx.lineTo(-35, 10);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+      
+      // Right wing
+      ctx.save();
+      ctx.rotate(-wingFlap);
+      ctx.beginPath();
+      ctx.moveTo(-15, 5);
+      ctx.lineTo(-50, 35);
+      ctx.lineTo(-35, -10);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+      
+      // === BODY ===
+      ctx.fillStyle = '#f44336'; // Bright red
+      ctx.strokeStyle = '#b71c1c';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 35, 25, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      
+      // Belly
+      ctx.fillStyle = '#ff7961';
+      ctx.beginPath();
+      ctx.ellipse(0, 5, 25, 18, 0, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // === TAIL ===
+      ctx.strokeStyle = '#f44336';
+      ctx.lineWidth = 14;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(-30, 0);
+      ctx.quadraticCurveTo(-50, 15, -60, 5);
+      ctx.stroke();
+      
+      // Tail tip spike
+      ctx.fillStyle = '#ff9800';
+      ctx.beginPath();
+      ctx.moveTo(-60, 5);
+      ctx.lineTo(-68, -5);
+      ctx.lineTo(-55, 5);
+      ctx.closePath();
+      ctx.fill();
+      
+      // === HEAD ===
+      ctx.fillStyle = '#f44336';
+      ctx.strokeStyle = '#b71c1c';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.ellipse(30, 0, 28, 22, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      
+      // === SNOUT ===
+      ctx.fillStyle = '#ff7961';
+      ctx.beginPath();
+      ctx.ellipse(50, 0, 18, 14, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      
+      // Nostrils
+      ctx.fillStyle = '#000';
+      ctx.beginPath();
+      ctx.ellipse(58, -5, 3, 4, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(58, 5, 3, 4, 0, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // === EYES (better spacing!) ===
+      // Left eye
+      ctx.fillStyle = '#fff';
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.ellipse(35, -10, 10, 12, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      
+      // Right eye
+      ctx.beginPath();
+      ctx.ellipse(35, 10, 10, 12, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      
+      // Pupils (glowing)
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = '#ff6600';
+      ctx.fillStyle = '#ff3300';
+      ctx.beginPath();
+      ctx.ellipse(37, -10, 5, 6, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(37, 10, 5, 6, 0, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Eye shine
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#ffeb3b';
+      ctx.beginPath();
+      ctx.arc(38, -12, 2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(38, 8, 2, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // === HORNS ===
+      ctx.fillStyle = '#ff9800';
+      ctx.strokeStyle = '#f57c00';
+      ctx.lineWidth = 2;
+      
+      // Left horn
+      ctx.beginPath();
+      ctx.moveTo(20, -20);
+      ctx.lineTo(18, -35);
+      ctx.lineTo(25, -22);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      
+      // Right horn
+      ctx.beginPath();
+      ctx.moveTo(38, -18);
+      ctx.lineTo(38, -33);
+      ctx.lineTo(43, -20);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      
+      // === SPIKES on back ===
+      ctx.fillStyle = '#ff9800';
+      const spikes = [
+        {x: -10, y: -20},
+        {x: 5, y: -22},
+        {x: 18, y: -20}
+      ];
+      spikes.forEach(spike => {
+        ctx.beginPath();
+        ctx.moveTo(spike.x, spike.y);
+        ctx.lineTo(spike.x - 4, spike.y - 10);
+        ctx.lineTo(spike.x + 4, spike.y - 10);
+        ctx.closePath();
+        ctx.fill();
+      });
+      
+      // === MOUTH (big smile) ===
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(50, 0, 10, 0.3, Math.PI - 0.3);
+      ctx.stroke();
+      
+      // === SMOKE PUFFS ===
+      if(Math.random() < 0.3) {
+        ctx.shadowBlur = 5;
+        ctx.shadowColor = 'rgba(100,100,100,0.3)';
+        ctx.fillStyle = `rgba(120, 120, 120, ${0.3 + Math.random() * 0.3})`;
+        ctx.beginPath();
+        ctx.arc(62 + rnd(-3, 3), rnd(-8, 8), rnd(4, 8), 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+      
+      ctx.restore();
+    }
+  }
+
+  
+  // Helper to shade colors
+  function shadeColor(color, percent) {
+    const num = parseInt(color.replace("#",""),16);
+    const amt = Math.round(2.55 * percent);
+    const R = (num >> 16) + amt;
+    const G = (num >> 8 & 0x00FF) + amt;
+    const B = (num & 0x0000FF) + amt;
+    return "#" + (0x1000000 + (R<255?R<1?0:R:255)*0x10000 +
+      (G<255?G<1?0:G:255)*0x100 + (B<255?B<1?0:B:255))
+      .toString(16).slice(1);
+  }
+  class Vehicle{
+  constructor(x,y,angle,color,kind){
+    this.x=x; this.y=y; this.rot=angle||0; this.speed=0;
+    this.color=color||'#79d2ff'; this.kind=kind||'car'; this.parked=false;
+
+    const baseW = (this.kind==='truck'?52:(this.kind==='boat'?40:44));
+    const baseH = (this.kind==='truck'?84:(this.kind==='boat'?68:72));
+    this.w = baseW * VEHICLE_SCALE;
+    this.h = baseH * VEHICLE_SCALE;
+  }
+  rect(){ return {x:this.x - this.w*0.25, y:this.y - this.h*0.25, w:this.w*0.5, h:this.h*0.5}; }
+  draw(){ ctx.save(); ctx.translate(this.x,this.y); ctx.rotate(this.rot); drawVehicle(ctx,this.color,this.kind); ctx.restore(); }
+}
+
+
+  // ----- Particles
+  const particles=[];
+  const floatingTexts=[]; // For "+9s" and other floating text messages
+  function spawnParticle(x,y,vx,vy,life,col){ particles.push({x,y,vx,vy,life,age:0,col}); }
+  function spawnFloatingText(x,y,text,col='#9be676'){ floatingTexts.push({x,y,text,col,age:0,life:1.2}); }
+
+  // ----- Input (SPACE = handbrake + one-shot park)
+		const keys={}; let handbrake=false, parkRequest=false;
+		window.addEventListener('keydown',e=>{
+		  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space','KeyR','Enter'].includes(e.code)) e.preventDefault();
+		  keys[e.code]=true;
+		  if(e.code==='Space'){ 
+        handbrake=true; 
+        player.speed=0; 
+        tryPark(player); 
+      }
+      if(e.code==='KeyC'){
+        activatePowerup();
+      }
+		});
+  window.addEventListener('keyup',e=>{ keys[e.code]=false; if(e.code==='Space') handbrake=false; });
+
+  // ----- Game state
+  let cars=[], player, angryCars=[], bullets=[], timeLeft=90, gameOver=false, hitCount=0, hitCooldown=0, hitsAllowed=2, ruleProg=0, ruleNeed=0, currentRule={type:'basic',n:5}, physics={accel:1,steer:1,drag:2,max:1}, maxSpeed=200, shield=0;
+  
+  // ----- COIN & SHOP SYSTEM
+  let totalCoins = 0; // Total coins COLLECTED (never decreases - for ending 3)
+  let spendableCoins = 0; // Coins available to SPEND in shop (can decrease)
+  let coins = []; // Coins in current level
+  let purchasedPowerup = null; // Currently owned power-up
+  let powerupActive = false; // Is power-up currently active
+  let powerupTimer = 0; // Duration left for active power-up
+  
+  // ----- 3 ENDINGS TRACKING SYSTEM
+  let totalCoinsSpawned = 0; // Total coins that appeared across all 50 levels
+  let perfectLevelWords = []; // Track which levels were completed with 0-1 hits (for story unlock)
+  let hasCompletedAll50 = false; // Ending 1: Complete all 50 levels
+  let hasUnlockedFullStory = false; // Ending 2: Complete all 50 with 0-1 hits each
+  let hasCollected70PercentCoins = false; // Ending 3: Collect 70% of all coins
+  let dragonBonusUnlocked = false; // Bonus: All 3 endings achieved
+  
+  // Single 50-word story (revealed word by word based on performance)
+
+	const MASTER_STORY = [
+  "Workers","torched","the","billboards","selling","poison","dreams.","Bosses","fled","their",
+  "towers","of","greed.","People","seized","factories,","turned","profit","machines","into",
+  "tools","for","survival.","No","gods","of","money","left","to","worship.",
+  "When","banks","fell,","nobody","panicked.","They","saw","there",
+  "was","always","enough,","once","greed","stopped","taking","what","wasn’t","missing.",
+  "Capitalism","died."
+];
+  
+  const SHOP_ITEMS = [
+    { id: 'time', name: '+5 Seconds', icon: '⏰', cost: 1, desc: 'Add 5 seconds to timer', color: '#9be676' },
+    { id: 'shield', name: 'Shield', icon: '🛡️', cost: 2, desc: 'Invincible for 10 seconds', duration: 10, color: '#79d2ff' },
+    { id: 'speed', name: 'Speed Boost', icon: '⚡', cost: 3, desc: 'Double speed for 10 seconds', duration: 10, color: '#ffd166' },
+    { id: 'combo', name: 'Ultimate Combo', icon: '💎', cost: 4, desc: 'time,shield,speed for 10 seconds!', duration: 10, color: '#ff7aa2' },
+    { id: 'gun', name: 'Smash Gun', icon: '🔫', cost: 5, desc: 'Destroy obstacles for 15 seconds', duration: 15, color: '#ef476f' }
+  ];
+  
+  // FIXED COIN DISTRIBUTION: 120 coins across 50 levels (balanced)
+  const COINS_PER_LEVEL = [
+    3, 2, 2, 3, 2, // Levels 1-5: 12 coins
+    3, 2, 2, 3, 2, // Levels 6-10: 12 coins
+    2, 3, 2, 2, 3, // Levels 11-15: 12 coins
+    2, 2, 3, 2, 3, // Levels 16-20: 12 coins
+    3, 2, 2, 3, 2, // Levels 21-25: 12 coins
+    2, 3, 2, 3, 2, // Levels 26-30: 12 coins
+    3, 2, 2, 3, 2, // Levels 31-35: 12 coins
+    2, 3, 2, 2, 3, // Levels 36-40: 12 coins
+    2, 3, 2, 3, 2, // Levels 41-45: 12 coins
+    3, 2, 2, 3, 2  // Levels 46-50: 12 coins
+  ]; // Total = 120 coins
+  
+  function spawnCoins(levelIdx) {
+    coins = [];
+    const lot = lotMemo;
+    
+    // Get exact number of coins for this level (0-indexed)
+    const numCoins = levelIdx < 50 ? COINS_PER_LEVEL[levelIdx] : 0;
+    totalCoinsSpawned += numCoins; // Track total coins spawned
+    
+    for(let i = 0; i < numCoins; i++) {
+      const x = lot.x + rnd(60, lot.w - 60);
+      const y = lot.y + rnd(60, lot.h - 60);
+      coins.push({
+        x: x,
+        y: y,
+        r: 12,
+        collected: false,
+        floatOffset: Math.random() * Math.PI * 2 // For animation
+      });
+    }
+  }
+  
+  function collectCoin(coin) {
+    if(coin.collected) return;
+    coin.collected = true;
+    totalCoins++; // For ending 3 tracking (never decreases)
+    spendableCoins++; // For shop spending (can decrease)
+    
+    // Particle effect
+    for(let k=0; k<12; k++) {
+      spawnParticle(coin.x, coin.y, rnd(-100,100), rnd(-100,100), rnd(0.4,0.8), '#ffd700');
+    }
+    
+    updateCoinDisplay();
+  }
+  
+  function updateCoinDisplay() {
+    ui.coinsHud.textContent = spendableCoins; // Display spendable coins (what you can use)
+  }
+  
+  // Update 3 endings progress bars
+  function updateEndingsProgress() {
+    // Safety checks - elements might not exist yet
+    if(!document.getElementById('ending1Progress')) return;
+    
+    // Load all-time best
+    const savedEndings = loadSavedEndings();
+    const savedBest = loadBestProgress();
+    
+    // Ending 1: Levels completed
+    const currentLevels = levelIndex + 1;
+    const levelsPercent = Math.min(100, (currentLevels / 50) * 100);
+    document.getElementById('ending1Progress').textContent = currentLevels;
+    document.getElementById('ending1Bar').style.width = levelsPercent + '%';
+    document.getElementById('ending1Best').textContent = savedEndings.ending1Ever ? '✓50' : `✓${savedBest.bestLevels || 0}`;
+    
+    // Ending 2: Words unlocked (0-1 hits)
+    const wordsUnlocked = perfectLevelWords.filter(w => w === true).length;
+    const wordsPercent = Math.min(100, (wordsUnlocked / 50) * 100);
+    document.getElementById('ending2Progress').textContent = wordsUnlocked;
+    document.getElementById('ending2Bar').style.width = wordsPercent + '%';
+    document.getElementById('ending2Best').textContent = savedEndings.ending2Ever ? '✓50' : `✓${savedBest.bestWords || 0}`;
+    
+    // Ending 3: Coins collected
+    const coinsPercent = totalCoinsSpawned > 0 ? Math.min(100, (totalCoins / totalCoinsSpawned) * 100) : 0;
+    document.getElementById('ending3Progress').textContent = totalCoins;
+    document.getElementById('ending3Bar').style.width = coinsPercent + '%';
+    document.getElementById('ending3Best').textContent = savedEndings.ending3Ever ? '✓84+' : `✓${savedBest.bestCoins || 0}`;
+    
+    // Update dragon status
+    const dragonUnlocked = savedEndings.ending1Ever && savedEndings.ending2Ever && savedEndings.ending3Ever;
+    const dragonStatus = document.getElementById('dragonStatus');
+    if(dragonStatus) {
+      if(dragonUnlocked) {
+        dragonStatus.style.background = 'rgba(255,102,0,0.2)';
+        dragonStatus.style.borderColor = '#ff6600';
+        dragonStatus.innerHTML = '<span style="font-size:11px;color:#ff6600;font-weight:bold">🐉 DRAGON BONUS UNLOCKED!</span>';
+      } else {
+        const completed = [savedEndings.ending1Ever, savedEndings.ending2Ever, savedEndings.ending3Ever].filter(x=>x).length;
+        dragonStatus.innerHTML = `<span style="font-size:10px;color:#999">🔒 Hidden Level: ${completed}/3 endings completed</span>`;
+      }
+    }
+    
+    // Update compact story preview (first 6 unlocked words)
+    const storyPreviewEl = document.getElementById('storyPreview');
+    const storyCountEl = document.getElementById('storyCount');
+    if(storyPreviewEl && storyCountEl) {
+      let storyPreview = '';
+      let wordCount = 0;
+      for(let i = 0; i < Math.min(6, playerStory.length); i++) {
+        if(playerStory[i]) {
+          wordCount++;
+          if(playerStory[i].unlocked) {
+            storyPreview += playerStory[i].word + ' ';
+          } else {
+            storyPreview += '__ ';
+          }
+        }
+      }
+      if(wordCount > 0) {
+        storyPreview += '...';
+      } else {
+        storyPreview = 'Complete levels to unlock story...';
+      }
+      storyPreviewEl.textContent = storyPreview;
+      storyCountEl.textContent = perfectLevelWords.filter(w => w === true).length;
+    }
+  }
+  
+  // Load best progress from localStorage
+  function loadBestProgress() {
+    const saved = localStorage.getItem('parkingGameBestProgress');
+    if(saved) {
+      return JSON.parse(saved);
+    }
+    return { bestLevels: 0, bestWords: 0, bestCoins: 0 };
+  }
+  
+  // Save best progress to localStorage
+  function saveBestProgress() {
+    const current = loadBestProgress();
+    const wordsUnlocked = perfectLevelWords.filter(w => w === true).length;
+    
+    const data = {
+      bestLevels: Math.max(current.bestLevels || 0, levelIndex + 1),
+      bestWords: Math.max(current.bestWords || 0, wordsUnlocked),
+      bestCoins: Math.max(current.bestCoins || 0, totalCoins)
+    };
+    
+    localStorage.setItem('parkingGameBestProgress', JSON.stringify(data));
+    return data;
+  }
+  
+  // Load saved endings from localStorage
+  function loadSavedEndings() {
+    const saved = localStorage.getItem('parkingGameEndings');
+    if(saved) {
+      const data = JSON.parse(saved);
+      return {
+        ending1Ever: data.ending1Ever || false,
+        ending2Ever: data.ending2Ever || false,
+        ending3Ever: data.ending3Ever || false
+      };
+    }
+    return { ending1Ever: false, ending2Ever: false, ending3Ever: false };
+  }
+  
+  // Save endings achievement to localStorage
+  function saveEndingsAchievement() {
+    const current = loadSavedEndings();
+    const data = {
+      ending1Ever: current.ending1Ever || hasCompletedAll50,
+      ending2Ever: current.ending2Ever || hasUnlockedFullStory,
+      ending3Ever: current.ending3Ever || hasCollected70PercentCoins
+    };
+    localStorage.setItem('parkingGameEndings', JSON.stringify(data));
+    
+    // Also save best progress
+    saveBestProgress();
+    
+    console.log('Saved endings:', data);
+    return data;
+  }
+  
+  function activatePowerup() {
+    if(!purchasedPowerup || powerupActive) return;
+    
+    powerupActive = true;
+    powerupTimer = purchasedPowerup.duration || 0;
+    
+    // Apply instant effects
+    if(purchasedPowerup.id === 'time') {
+      timeLeft += 5;
+      powerupActive = false; // Instant effect
+      purchasedPowerup = null;
+      updatePowerupDisplay();
+    }
+  }
+  
+  function updatePowerupDisplay() {
+    if(purchasedPowerup) {
+      ui.powerupHud.textContent = purchasedPowerup.icon + ' ' + purchasedPowerup.name + 
+        (powerupActive ? ` (${Math.ceil(powerupTimer)}s)` : ' (Press C)');
+      ui.powerupHud.style.color = purchasedPowerup.color;
+    } else {
+      ui.powerupHud.textContent = 'None';
+      ui.powerupHud.style.color = '#cfd3da';
+    }
+  }
+  
+  function showShop() {
+    return new Promise(resolve => {
+      const overlay = document.createElement('div');
+      overlay.style.cssText = `
+        position:fixed;top:0;left:0;right:0;bottom:0;
+        background:rgba(0,0,0,0.9);
+        display:flex;align-items:center;justify-content:center;
+        z-index:10000;
+      `;
+      
+      let itemsHTML = '';
+      for(const item of SHOP_ITEMS) {
+        const canAfford = spendableCoins >= item.cost; // Check spendable, not total
+        const disabledStyle = canAfford ? '' : 'opacity:0.5;cursor:not-allowed';
+        itemsHTML += `
+          <div style="padding:16px;background:#1a1f29;border:2px solid ${canAfford ? item.color : '#334'};border-radius:8px;${disabledStyle}">
+            <div style="font-size:32px;margin-bottom:8px">${item.icon}</div>
+            <div style="font-weight:bold;color:${item.color};margin-bottom:4px">${item.name}</div>
+            <div style="font-size:12px;color:#cfd3da;margin-bottom:8px">${item.desc}</div>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span style="color:#ffd700;font-weight:bold">🪙 ${item.cost}</span>
+              <button class="shop-buy-btn" data-id="${item.id}" ${!canAfford ? 'disabled' : ''} 
+                style="padding:6px 12px;background:${canAfford ? item.color : '#334'};color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:bold;cursor:${canAfford ? 'pointer' : 'not-allowed'}">
+                Buy
+              </button>
+            </div>
+          </div>
+        `;
+      }
+      
+      overlay.innerHTML = `
+        <div style="background:#0e121a;border:3px solid #ffd700;border-radius:16px;padding:32px;max-width:600px;width:90%;text-align:center">
+          <h2 style="margin:0 0 8px;font-size:28px;color:#ffd700">🪙 Power-Up Shop</h2>
+          <p style="margin:0 0 20px;color:#cfd3da">You have <span style="color:#ffd700;font-weight:bold">${spendableCoins} coins</span> to spend</p>
+          
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px">
+            ${itemsHTML}
+          </div>
+          
+          <button id="shopSkipBtn" style="padding:10px 24px;background:#334;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;width:100%">
+            Skip (Start Level)
+          </button>
+        </div>
+      `;
+      
+      document.body.appendChild(overlay);
+      
+      // Buy button handlers
+      overlay.querySelectorAll('.shop-buy-btn').forEach(btn => {
+        btn.onclick = () => {
+          if(btn.disabled) return;
+          const itemId = btn.getAttribute('data-id');
+          const item = SHOP_ITEMS.find(i => i.id === itemId);
+          if(item && spendableCoins >= item.cost) {
+            spendableCoins -= item.cost; // Only subtract from spendable, not totalCoins
+            purchasedPowerup = item;
+            updateCoinDisplay();
+            updatePowerupDisplay();
+            overlay.remove();
+            resolve();
+          }
+        };
+      });
+      
+      // Skip button
+      document.getElementById('shopSkipBtn').onclick = () => {
+        overlay.remove();
+        resolve();
+      };
+    });
+  }
+
+  const palettes={cars:['#79d2ff','#ff7aa2','#ffd166','#9be676','#c39bff'],trucks:['#e4572e','#4ca3dd','#f2c14e','#90be6d'],boats:['#86c5ff','#ff9f1c','#f94144','#2ec4b6','rgb(120,210,255)'],oldcars:['#a0b3a8','#c4a484','#b48ead','#88c0d0']};
+
+  // ----- Rules
+  function genRule(level){
+    // Layouts that don't work with row/chain/block rules (circular, irregular, or misaligned grids)
+    const nonGridLayouts = ['circle', 'spiral', 'cross', 'triangle', 'bullseye', 'wave', 'lshape', 'multizone'];
+    
+    // For non-grid layouts, only use 'basic' and 'red' rules
+    const types = nonGridLayouts.includes(lotShape)
+      ? ['basic', 'red']  // Non-grid: only park anywhere or red spots
+      : ['basic','sameRow','chain','block','red']; // Grid layouts: all rules
+    
+    const type=types[rndi(0,Math.min(types.length-1,1+Math.floor(level/10)))];
+    let rule,text;
+    
+    if(type==='basic'){ 
+      // GRADUAL SCALING for 100 levels: Level 0=3, Level 20=6, Level 50=10, Level 100=15
+      const n = Math.min(15, 3 + Math.floor(level * 0.12));
+      rule={type,n}; text=`Park ${n} vehicles anywhere`; 
+    }
+    else if(type==='sameRow'){ 
+      // STAYS CONSTANT: Always 4 cars in same row
+      const n = 4;
+      rule={type,n}; text=`Park ${n} in the SAME ROW`; 
+    }
+    else if(type==='chain'){ 
+      // STAYS CONSTANT: Always 4 adjacent cars
+      const n = 4;
+      rule={type,n}; text=`Make a chain of ${n} ADJACENT`; 
+    }
+    else if(type==='block'){ 
+      // STAYS CONSTANT: Always 2x2 block
+      const w = 2;
+      const h = 2;
+      rule={type,w,h}; text=`Form a ${w}×${h} BLOCK`; 
+    }
+    else { 
+      // GRADUAL SCALING: Level 0=2, Level 20=5, Level 50=8, Level 100=14
+      const n = Math.min(14, 2 + Math.floor(level * 0.12));
+      rule={type:'red',n}; text=`Park in ${n} RED spots`; 
+    }
+    return {rule,text};
+  }
+  function genTime(level){ 
+    // Time decreases gradually: Level 0=85-90s, Level 50=60-65s, Level 100=40-45s
+    const baseTime = Math.max(40, 90 - Math.floor(level * 0.5)); // Decreases by 0.5 seconds per level
+    return rndi(baseTime - 5, baseTime); 
+  }
+  
+  function genHitsAllowed(level){ 
+    // Always 4 hits: 0=legendary, 1=rare, 2=common, 3=no word, 4=death
+    return 4;
+  }
+
+  // ----- Helpers
+  function getSpotContaining(x,y){ 
+    for(const s of spots){ 
+      const dist = Math.sqrt((x-s.x-s.w/2)**2 + (y-s.y-s.h/2)**2); 
+      if(dist < 30) return s; 
+    } 
+    return null; 
+  }
+  function overlap(a,b){ return a.x < b.x+b.w && a.x+a.w > b.x && a.y < b.y+b.h && a.y+a.h > b.y; }
+
+  function evaluateRule(rule, initOnly=false){
+    const occ = Array.from({length:gridRows||1}, ()=>Array(gridCols||1).fill(0));
+    for(const s of spots){ if(s.byPlayer && s.gy<occ.length && s.gx<occ[0].length) occ[s.gy][s.gx]=1; }
+    let prog=0, need=0;
+    
+    if(rule.type==='basic'){ 
+      need=rule.n; 
+      for(const s of spots) if(s.byPlayer) prog++; 
+      prog=Math.min(prog,need); 
+    }
+    else if(rule.type==='sameRow'){ 
+      need=rule.n; 
+      let best=0; 
+      for(let r=0;r<gridRows;r++){ 
+        let c=0; 
+        for(let x=0;x<gridCols;x++) c+=occ[r][x]; 
+        if(c>best) best=c; 
+      } 
+      prog=Math.min(best,need); 
+    }
+    else if(rule.type==='chain'){ 
+      need=rule.n; 
+      let best=0;
+      
+      // Check horizontal chains
+      for(let r=0;r<gridRows;r++){ 
+        let run=0; 
+        for(let x=0;x<gridCols;x++){ 
+          if(occ[r][x]){ 
+            run++; 
+            if(run>best) best=run; 
+          } else run=0; 
+        } 
+      }
+      
+      // Check vertical chains
+      for(let c=0;c<gridCols;c++){ 
+        let run=0; 
+        for(let r=0;r<gridRows;r++){ 
+          if(occ[r][c]){ 
+            run++; 
+            if(run>best) best=run; 
+          } else run=0; 
+        } 
+      }
+      
+      prog=Math.min(best,need); 
+    }
+    else if(rule.type==='block'){ 
+      need=rule.w*rule.h; 
+      let found=false; 
+      for(let r=0;r<=gridRows-rule.h;r++){ 
+        for(let x=0;x<=gridCols-rule.w;x++){ 
+          let ok=true; 
+          for(let dy=0;dy<rule.h;dy++){ 
+            for(let dx=0;dx<rule.w;dx++){ 
+              if(!occ[r+dy][x+dx]){ ok=false; break; } 
+            } 
+            if(!ok) break; 
+          } 
+          if(ok){ found=true; break; } 
+        } 
+        if(found) break; 
+      } 
+      prog = found? need : Math.min(need-1,need); 
+    }
+    else if(rule.type==='red'){ 
+      need=rule.n; 
+      let c=0; 
+      for(const s of redSpots){ if(s.byPlayer) c++; } 
+      prog=Math.min(c,need); 
+    }
+    
+    if(!initOnly){ ruleProg=prog; ui.ruleProg.textContent=prog; }
+    return {prog,need};
+  }
+
+function getSpotAtPointRect(x, y, expand = 10) {
+  // Return the first spot whose (expanded) rectangle contains the point
+  for (const s of spots) {
+    const rx = s.x - expand, ry = s.y - expand, rw = s.w + expand*2, rh = s.h + expand*2;
+    if (x >= rx && x <= rx + rw && y >= ry && y <= ry + rh) return s;
+  }
+  return null;
+}
+
+
+  function tryPark(car){
+    let s = getSpotContaining(car.x, car.y);
+
+// If the rule is red and the nearest spot isn't red (or no spot),
+// try a rectangle-based lookup that prefers a red spot under the car.
+if (currentRule.type === 'red' && (!s || !s.red)) {
+  // First: look specifically for a red spot under the car with a generous tolerance
+  const redUnder = redSpots.find(rs => {
+    const rx = rs.x - 12, ry = rs.y - 12, rw = rs.w + 24, rh = rs.h + 24;
+    return car.x >= rx && car.x <= rx + rw && car.y >= ry && car.y <= ry + rh;
+  });
+  if (redUnder && !redUnder.occupied) s = redUnder;
+
+  // If still nothing, fall back to any spot by rectangle (more forgiving than center distance)
+  if (!s) s = getSpotAtPointRect(car.x, car.y, 12);
+}
+
+    const speed=Math.abs(car.speed);
+    if(!s || speed>=24 || car.parked) return false;
+    if(s.occupied && !s.byPlayer) return false;
+    // if rule is 'red', you may ONLY park on red-marked spots
+    if(currentRule.type==='red' && !s.red) return false;
+
+    car.parked=true; car.speed=0; s.occupied=true; s.byPlayer=true;
+    for(let i=0;i<28;i++) spawnParticle(car.x,car.y,rnd(-220,220),rnd(-180,140),rnd(0.3,0.8),'#9be676');
+    // Award time bonus for each successful park
+timeLeft += 5;
+ui.time.textContent = Math.ceil(timeLeft);
+
+// +9 SECONDS TIME BONUS for parking!
+if(!gameOver) {
+  timeLeft += 9;
+  ui.time.textContent = Math.ceil(timeLeft);
+  
+  // Floating "+9s" text above the parked car
+  spawnFloatingText(car.x, car.y - 40, '+9s', '#9be676');
+  
+  // Visual feedback for time bonus (green particles shooting up)
+  for(let k=0;k<8;k++) {
+    spawnParticle(car.x + rnd(-10, 10), car.y - 20, rnd(-30, 30), rnd(-100, -60), rnd(0.6, 1.0), '#9be676');
+  }
+}
+
+// optional: small time particle burst (yellow)
+for(let k=0;k<6;k++)
+  spawnParticle(car.x,car.y,rnd(-120,120),rnd(-80,80),rnd(0.3,0.6),'#ffd166');
+
+
+    // Achievement tracking
+    stats.totalParks++;
+    saveStats();
+    checkAchievements();
+    
+    // DRAGON: Shoot fireball when car is parked (levels 32+)
+    if(dragon && !gameOver) {
+      dragon.shootFireball();
+    }
+
+    const {prog,need}=evaluateRule(currentRule);
+    if(prog>=need){
+      // Level complete! Stop the timer to prevent timeout during victory delay
+      gameOver = true;
+      
+      // Check for perfect level
+      if(hitCount === 0) {
+        stats.perfectLevels++;
+      }
+      stats.levelsCompleted++;
+      saveStats();
+      checkAchievements();
+      
+      // STORY SYSTEM: Generate and save word (only for levels 1-50)
+      if(levelIndex < 50) {
+        const wordData = getWordForLevel(levelIndex, hitCount);
+        saveStoryWord(levelIndex, wordData);
+        updateStoryDisplay();
+        updateEndingsProgress(); // Update progress bars
+        showStoryUnlock(levelIndex, wordData);
+      }
+      
+      // CHECK FOR 3 ENDINGS when completing level 50
+      if(levelIndex === 49) { // Level 50 (0-indexed)
+        hasCompletedAll50 = true;
+        
+        // Check if all 50 words unlocked (0-1 hits each level)
+        hasUnlockedFullStory = perfectLevelWords.filter(w => w === true).length === 50;
+        
+        // Check if 70% of coins collected
+        const coinPercentage = totalCoinsSpawned > 0 ? (totalCoins / totalCoinsSpawned) * 100 : 0;
+        hasCollected70PercentCoins = coinPercentage >= 70;
+        
+        // Check if ALL 3 endings achieved
+        dragonBonusUnlocked = hasCompletedAll50 && hasUnlockedFullStory && hasCollected70PercentCoins;
+        
+        console.log('=== ENDINGS CHECK ===');
+        console.log('Completed 50 levels:', hasCompletedAll50);
+        console.log('Full story unlocked:', hasUnlockedFullStory);
+        console.log(`Coins: ${totalCoins}/${totalCoinsSpawned} (${coinPercentage.toFixed(1)}%)`, hasCollected70PercentCoins);
+        console.log('DRAGON BONUS:', dragonBonusUnlocked);
+      }
+      
+      // next level - show shop FIRST, then start level OR show endings screen
+      levelIndex++;
+      setTimeout(() => {
+        if(levelIndex === 50) {
+          // Show endings screen instead of continuing
+          showEndingsScreen();
+        } else if(levelIndex > 0) {
+          showShop().then(() => startLevel(levelIndex));
+        } else {
+          startLevel(levelIndex);
+        }
+      }, levelIndex < 50 ? 3000 : 600);
+    } else {
+      // spawn next player vehicle
+      const sp=spawns[rndi(0,spawns.length-1)];
+      const pal=palettes[currentBiome.theme]||palettes.cars;
+      const kind=(currentBiome.theme==='boats'?'boat': currentBiome.theme==='trucks'?'truck': currentBiome.theme==='oldcars'?'car':'car');
+      const n=new Vehicle(sp.x,sp.y,sp.angle,pal[rndi(0,pal.length-1)],kind);
+      cars.unshift(n); player=n;
+    }
+    return true;
+  }
+
+  // ----- Level start
+  // ----- 3 ENDINGS SCREEN
+  function showEndingsScreen() {
+    // Save current achievements
+    const savedEndings = saveEndingsAchievement();
+    
+    // Check if dragon bonus should be unlocked (achieved all 3 at least once, not necessarily same run)
+    const dragonUnlocked = savedEndings.ending1Ever && savedEndings.ending2Ever && savedEndings.ending3Ever;
+    
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+      position:fixed;top:0;left:0;right:0;bottom:0;
+      background:rgba(0,0,0,0.95);
+      display:flex;align-items:center;justify-content:center;
+      z-index:10000;
+      overflow-y:auto;
+      padding:20px;
+    `;
+    
+    const coinPercentage = totalCoinsSpawned > 0 ? ((totalCoins / totalCoinsSpawned) * 100).toFixed(1) : 0;
+    const unlockedWords = perfectLevelWords.filter(w => w === true).length;
+    
+    // Build the story text with unlocked/locked words
+    let storyHTML = '<div style="margin:24px 0;padding:20px;background:#1a1f29;border-radius:12px;line-height:2;font-size:16px;word-wrap:break-word;overflow-wrap:break-word;text-align:left">';
+    for(let i = 0; i < 50; i++) {
+      if(playerStory[i] && playerStory[i].unlocked) {
+        storyHTML += `<span style="color:#9be676;margin:0 4px;font-weight:500">${playerStory[i].word}</span>`;
+      } else if(playerStory[i]) {
+        storyHTML += `<span style="color:#666;margin:0 4px">_____</span>`;
+      }
+    }
+    storyHTML += '</div>';
+    
+    overlay.innerHTML = `
+      <div style="background:#0e121a;border:3px solid #6a5acd;border-radius:16px;padding:40px;max-width:800px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.7)">
+        <h1 style="margin:0 0 20px;font-size:36px;color:#e7e7e7">🎉 CONGRATULATIONS! 🎉</h1>
+        <p style="margin:0 0 32px;font-size:18px;color:#9be676">You completed all 50 levels!</p>
+        
+        <div style="text-align:left;margin:32px 0">
+          <h2 style="margin:0 0 16px;font-size:24px;color:#e7e7e7">Your Achievements This Run:</h2>
+          
+          <div style="padding:16px;background:${hasCompletedAll50 ? '#1a2a1a' : '#1a1a1a'};border:2px solid ${hasCompletedAll50 ? '#9be676' : '#334'};border-radius:8px;margin-bottom:12px">
+            <p style="margin:0;font-size:18px">${hasCompletedAll50 ? '✅' : '❌'} <strong>Ending 1:</strong> Complete all 50 levels</p>
+            <p style="margin:4px 0 0;font-size:14px;color:#cfd3da">${hasCompletedAll50 ? 'UNLOCKED!' : 'Not achieved'}</p>
+          </div>
+          
+          <div style="padding:16px;background:${hasUnlockedFullStory ? '#1a2a1a' : '#1a1a1a'};border:2px solid ${hasUnlockedFullStory ? '#9be676' : '#334'};border-radius:8px;margin-bottom:12px">
+            <p style="margin:0;font-size:18px">${hasUnlockedFullStory ? '✅' : '❌'} <strong>Ending 2:</strong> Unlock Full Story</p>
+            <p style="margin:4px 0 0;font-size:14px;color:#cfd3da">Complete all 50 levels with 0-1 hits each</p>
+            <p style="margin:8px 0 0;font-size:16px;color:${hasUnlockedFullStory ? '#9be676' : '#ff6b6b'}">${unlockedWords}/50 words unlocked</p>
+          </div>
+          
+          <div style="padding:16px;background:${hasCollected70PercentCoins ? '#1a2a1a' : '#1a1a1a'};border:2px solid ${hasCollected70PercentCoins ? '#9be676' : '#334'};border-radius:8px;margin-bottom:12px">
+            <p style="margin:0;font-size:18px">${hasCollected70PercentCoins ? '✅' : '❌'} <strong>Ending 3:</strong> Coin Master</p>
+            <p style="margin:4px 0 0;font-size:14px;color:#cfd3da">Collect 70% of all coins (${totalCoins}/${totalCoinsSpawned})</p>
+            <p style="margin:8px 0 0;font-size:16px;color:${hasCollected70PercentCoins ? '#9be676' : '#ff6b6b'}">${coinPercentage}%</p>
+          </div>
+          
+          <div style="margin-top:24px;padding:20px;background:#0e121a;border:2px solid #6a5acd;border-radius:12px">
+            <h3 style="margin:0 0 12px;font-size:20px;color:#e7e7e7">📖 Your Story This Run:</h3>
+            ${storyHTML}
+            ${unlockedWords < 50 ? `<p style="margin:12px 0 0;font-size:13px;color:#999;font-style:italic">Complete levels with 0-1 hits to unlock all words!</p>` : `<p style="margin:12px 0 0;font-size:16px;color:#ffd700;font-weight:bold">✨ COMPLETE STORY UNLOCKED! ✨</p>`}
+          </div>
+          
+          ${dragonUnlocked ? `
+            <div style="padding:20px;background:linear-gradient(135deg, #1a1a2e, #2a1a1e);border:3px solid #ff6600;border-radius:12px;margin-top:24px;box-shadow:0 8px 24px rgba(255,102,0,0.3)">
+              <p style="margin:0 0 12px;font-size:24px;color:#ff6600">🐉 <strong>ULTIMATE ACHIEVEMENT!</strong> 🐉</p>
+              <p style="margin:0 0 16px;font-size:16px;color:#ffd700">You unlocked all 3 endings across your playthroughs!</p>
+              <button onclick="startDragonBonus()" style="padding:12px 24px;background:#ff6600;color:#fff;border:none;border-radius:8px;font-size:18px;font-weight:bold;cursor:pointer;box-shadow:0 4px 12px rgba(255,102,0,0.5)">
+                🔥 PLAY AS DRAGON! 🔥
+              </button>
+            </div>
+          ` : `
+            <div style="padding:16px;background:#1a1a1a;border:2px solid #666;border-radius:12px;margin-top:24px">
+              <p style="margin:0 0 8px;font-size:16px;color:#999">🔒 <strong>Dragon Bonus Level</strong></p>
+              <p style="margin:0 0 12px;font-size:14px;color:#666">Achieve all 3 endings to unlock (can be across different runs)</p>
+              <div style="display:flex;gap:12px;justify-content:center;font-size:13px">
+                <span style="color:${savedEndings.ending1Ever ? '#9be676' : '#666'}">${savedEndings.ending1Ever ? '✅' : '❌'} Ending 1</span>
+                <span style="color:${savedEndings.ending2Ever ? '#9be676' : '#666'}">${savedEndings.ending2Ever ? '✅' : '❌'} Ending 2</span>
+                <span style="color:${savedEndings.ending3Ever ? '#9be676' : '#666'}">${savedEndings.ending3Ever ? '✅' : '❌'} Ending 3</span>
+              </div>
+            </div>
+          `}
+        </div>
+        
+        <button onclick="location.reload()" style="margin-top:24px;padding:12px 24px;background:#6a5acd;color:#fff;border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer">
+          🔄 Play Again
+        </button>
+      </div>
+    `;
+    
+    document.body.appendChild(overlay);
+  }
+  
+  // ----- DRAGON BONUS GAME
+  window.startDragonBonus = function() {
+    console.log('Starting Dragon Bonus Game!');
+    // Remove endings screen
+    document.body.querySelectorAll('div[style*="position:fixed"]').forEach(el => el.remove());
+    
+    // Create dragon game overlay
+    const gameDiv = document.createElement('div');
+    gameDiv.id = 'dragonGame';
+    gameDiv.style.cssText = `
+      position:fixed;top:0;left:0;right:0;bottom:0;
+      background:#000;
+      z-index:11000;
+    `;
+    gameDiv.innerHTML = `
+      <canvas id="dragonCanvas" width="960" height="540"></canvas>
+      <div id="dragonHUD" style="position:absolute;top:20px;left:20px;color:#fff;font-size:20px;font-family:Arial">
+        <div>❤️ Lives: <span id="dragonLives">10</span>/10</div>
+        <div>🎯 Score: <span id="dragonScore">0</span></div>
+        <div style="margin-top:10px;font-size:14px;color:#ffd700">↑↓ / WS to move | SPACE to shoot!</div>
+      </div>
+    `;
+    document.body.appendChild(gameDiv);
+    
+    runDragonGame();
+  }
+  
+  function runDragonGame() {
+    const canvas = document.getElementById('dragonCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = 960;
+    canvas.height = 540;
+    
+    // SCROLLING SHOOTER - Dragon flies forward (left to right)
+    let dragonX = 150;
+    let dragonY = 270;
+    let dragonSpeed = 250; // Vertical movement speed
+    let dragonLives = 10;
+    let dragonScore = 0;
+    let fireballs = [];
+    let enemyCars = [];
+    let explosions = [];
+    let particles = [];
+    let gameRunning = true;
+    let scrollSpeed = 200; // Background scroll speed
+    let backgroundOffset = 0;
+    let spawnTimer = 0;
+    let difficultyTimer = 0;
+    let spawnRate = 1.5; // Spawn enemy every 1.5 seconds
+    
+    // Keys pressed
+    const keys = {};
+    let canShoot = true;
+    let shootCooldown = 0.15; // 150ms cooldown between shots
+    let lastShootTime = 0;
+    
+    window.addEventListener('keydown', (e) => { 
+      keys[e.key] = true;
+      
+      // Space bar to shoot
+      if((e.key === ' ' || e.key === 'Spacebar') && gameRunning && canShoot) {
+        e.preventDefault(); // Prevent page scroll
+        
+        // Shoot fireball forward
+        fireballs.push({
+          x: dragonX + 60,
+          y: dragonY,
+          vx: 600,
+          vy: 0,
+          size: 15
+        });
+        
+        // Shoot particles
+        for(let i = 0; i < 3; i++) {
+          particles.push({
+            x: dragonX + 60,
+            y: dragonY,
+            vx: 500 + Math.random() * 100,
+            vy: (Math.random() - 0.5) * 100,
+            life: 0.3,
+            age: 0,
+            color: '#ff6600'
+          });
+        }
+        
+        canShoot = false;
+        lastShootTime = Date.now();
+      }
+    });
+    
+    window.addEventListener('keyup', (e) => { keys[e.key] = false; });
+    
+    // Spawn enemy car
+    function spawnEnemy() {
+      const types = ['car', 'tank', 'turret'];
+      const type = types[Math.floor(Math.random() * types.length)];
+      
+      enemyCars.push({
+        x: 1000,
+        y: 100 + Math.random() * 340,
+        vx: -150 - Math.random() * 100,
+        vy: (Math.random() - 0.5) * 30, // Slight vertical movement
+        type: type,
+        color: ['#f44336', '#2196f3', '#4caf50', '#ffc107', '#9c27b0'][Math.floor(Math.random() * 5)],
+        health: type === 'tank' ? 3 : type === 'turret' ? 2 : 1,
+        size: type === 'tank' ? 70 : type === 'turret' ? 50 : 40,
+        shootTimer: type === 'turret' ? 0.5 + Math.random() : type === 'tank' ? 1 + Math.random() : 999
+      });
+    }
+    
+    // Game loop
+    let lastTime = Date.now();
+    function loop() {
+      if(!gameRunning) return;
+      
+      const now = Date.now();
+      const dt = Math.min((now - lastTime) / 1000, 0.1);
+      lastTime = now;
+      
+      // Spawn enemies
+      spawnTimer += dt;
+      if(spawnTimer >= spawnRate) {
+        spawnTimer = 0;
+        spawnEnemy();
+        if(Math.random() > 0.7) spawnEnemy(); // Sometimes spawn 2
+      }
+      
+      // Increase difficulty over time
+      difficultyTimer += dt;
+      if(difficultyTimer >= 10) {
+        difficultyTimer = 0;
+        spawnRate = Math.max(0.5, spawnRate - 0.1);
+        scrollSpeed += 20;
+        console.log('Difficulty increased! Spawn rate:', spawnRate.toFixed(2));
+      }
+      
+      // Shoot cooldown
+      if(!canShoot && (Date.now() - lastShootTime) > shootCooldown * 1000) {
+        canShoot = true;
+      }
+      
+      // Dragon movement (UP/DOWN or W/S)
+      if(keys['ArrowUp'] || keys['w'] || keys['W']) {
+        dragonY -= dragonSpeed * dt;
+      }
+      if(keys['ArrowDown'] || keys['s'] || keys['S']) {
+        dragonY += dragonSpeed * dt;
+      }
+      dragonY = Math.max(50, Math.min(490, dragonY));
+      
+      // === DRAW SCROLLING BACKGROUND ===
+      backgroundOffset -= scrollSpeed * dt;
+      if(backgroundOffset < -100) backgroundOffset = 0;
+      
+      // Sky gradient
+      const skyGrad = ctx.createLinearGradient(0, 0, 0, 540);
+      skyGrad.addColorStop(0, '#1a2a4a');
+      skyGrad.addColorStop(0.7, '#2a4a6a');
+      skyGrad.addColorStop(1, '#3a5a7a');
+      ctx.fillStyle = skyGrad;
+      ctx.fillRect(0, 0, 960, 540);
+      
+      // Scrolling clouds
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+      for(let i = 0; i < 15; i++) {
+        const x = (i * 100 + backgroundOffset * 0.5) % 1060 - 100;
+        const y = (i * 37) % 400;
+        ctx.beginPath();
+        ctx.ellipse(x, y, 40, 25, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      
+      // Ground far below (scrolling)
+      ctx.fillStyle = '#2d5016';
+      ctx.fillRect(0, 480, 960, 60);
+      
+      // Ground details
+      ctx.fillStyle = '#1a3010';
+      for(let i = 0; i < 12; i++) {
+        const x = (i * 90 + backgroundOffset) % 960;
+        ctx.fillRect(x, 490, 50, 15);
+        ctx.fillRect(x + 10, 510, 30, 20);
+      }
+      
+      // === UPDATE & DRAW ENEMY CARS ===
+      for(let i = enemyCars.length - 1; i >= 0; i--) {
+        const enemy = enemyCars[i];
+        enemy.x += enemy.vx * dt;
+        enemy.y += enemy.vy * dt;
+        
+        // Keep in bounds vertically
+        if(enemy.y < 50) enemy.vy = Math.abs(enemy.vy);
+        if(enemy.y > 450) enemy.vy = -Math.abs(enemy.vy);
+        
+        // Remove if off screen
+        if(enemy.x < -100) {
+          enemyCars.splice(i, 1);
+          continue;
+        }
+        
+        // Shooting logic (turrets and tanks shoot)
+        if(enemy.type === 'turret' || enemy.type === 'tank') {
+          enemy.shootTimer -= dt;
+          if(enemy.shootTimer <= 0) {
+            enemy.shootTimer = (enemy.type === 'turret' ? 1 : 1.5) + Math.random();
+            
+            // Shoot at dragon
+            const dx = dragonX - enemy.x;
+            const dy = dragonY - enemy.y;
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            
+            // Create bullet trail
+            for(let j = 0; j < 3; j++) {
+              particles.push({
+                x: enemy.x,
+                y: enemy.y,
+                vx: (dx/dist) * 200 + (Math.random() - 0.5) * 50,
+                vy: (dy/dist) * 200 + (Math.random() - 0.5) * 50,
+                life: 0.5,
+                age: 0,
+                color: '#ffff00'
+              });
+            }
+          }
+        }
+        
+        // Check collision with dragon
+        const distToDragon = Math.sqrt((enemy.x - dragonX)**2 + (enemy.y - dragonY)**2);
+        if(distToDragon < enemy.size + 40) {
+          // Hit dragon!
+          dragonLives--;
+          document.getElementById('dragonLives').textContent = dragonLives;
+          enemyCars.splice(i, 1);
+          
+          // Big explosion
+          for(let k = 0; k < 20; k++) {
+            explosions.push({
+              x: enemy.x,
+              y: enemy.y,
+              age: 0,
+              maxAge: 1
+            });
+          }
+          
+          if(dragonLives <= 0) {
+            gameRunning = false;
+            showDragonGameOver();
+          }
+          continue;
+        }
+        
+        // Draw enemy based on type
+        if(enemy.type === 'car') {
+          // Regular car
+          ctx.save();
+          ctx.translate(enemy.x, enemy.y);
+          ctx.rotate(Math.PI); // Face left
+          
+          // Shadow
+          ctx.fillStyle = 'rgba(0,0,0,0.3)';
+          ctx.fillRect(-25, 15, 50, 8);
+          
+          // Body
+          ctx.fillStyle = enemy.color;
+          ctx.fillRect(-25, -15, 50, 30);
+          
+          // Shine
+          const carShine = ctx.createLinearGradient(0, -15, 0, 15);
+          carShine.addColorStop(0, 'rgba(255,255,255,0.4)');
+          carShine.addColorStop(1, 'rgba(0,0,0,0.2)');
+          ctx.fillStyle = carShine;
+          ctx.fillRect(-25, -15, 50, 15);
+          
+          // Roof
+          ctx.fillStyle = enemy.color;
+          ctx.fillRect(-15, -25, 30, 15);
+          
+          // Windows
+          ctx.fillStyle = '#2a5a8a';
+          ctx.fillRect(-13, -23, 11, 11);
+          ctx.fillRect(2, -23, 11, 11);
+          
+          // Wheels
+          ctx.fillStyle = '#1a1a1a';
+          ctx.beginPath();
+          ctx.arc(-18, 15, 6, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(18, 15, 6, 0, Math.PI * 2);
+          ctx.fill();
+          
+          ctx.restore();
+          
+        } else if(enemy.type === 'tank') {
+          // Tank - bigger and tougher
+          ctx.fillStyle = '#556b2f';
+          ctx.fillRect(enemy.x - 35, enemy.y - 20, 70, 40);
+          
+          // Tank shine
+          ctx.fillStyle = 'rgba(255,255,255,0.2)';
+          ctx.fillRect(enemy.x - 35, enemy.y - 20, 70, 20);
+          
+          // Turret
+          ctx.fillStyle = '#3a4a1f';
+          ctx.beginPath();
+          ctx.arc(enemy.x, enemy.y, 15, 0, Math.PI * 2);
+          ctx.fill();
+          
+          // Gun barrel pointing at dragon
+          const angle = Math.atan2(dragonY - enemy.y, dragonX - enemy.x);
+          ctx.save();
+          ctx.translate(enemy.x, enemy.y);
+          ctx.rotate(angle);
+          ctx.fillStyle = '#2a2a2a';
+          ctx.fillRect(-5, -4, 25, 8);
+          ctx.fillStyle = '#ff0000';
+          ctx.fillRect(18, -3, 4, 6);
+          ctx.restore();
+          
+          // Treads
+          ctx.fillStyle = '#1a1a1a';
+          ctx.fillRect(enemy.x - 35, enemy.y - 22, 70, 5);
+          ctx.fillRect(enemy.x - 35, enemy.y + 17, 70, 5);
+          
+          // Health bar
+          ctx.fillStyle = '#333';
+          ctx.fillRect(enemy.x - 35, enemy.y - 30, 70, 5);
+          ctx.fillStyle = '#ff0000';
+          ctx.fillRect(enemy.x - 35, enemy.y - 30, (enemy.health / 3) * 70, 5);
+          
+        } else if(enemy.type === 'turret') {
+          // Stationary turret
+          ctx.fillStyle = '#666';
+          ctx.fillRect(enemy.x - 25, enemy.y - 15, 50, 30);
+          
+          // Turret base
+          ctx.fillStyle = '#444';
+          ctx.beginPath();
+          ctx.arc(enemy.x, enemy.y, 18, 0, Math.PI * 2);
+          ctx.fill();
+          
+          // Gun rotating to aim at dragon
+          const angle = Math.atan2(dragonY - enemy.y, dragonX - enemy.x);
+          ctx.save();
+          ctx.translate(enemy.x, enemy.y);
+          ctx.rotate(angle);
+          ctx.fillStyle = '#333';
+          ctx.fillRect(-5, -5, 30, 10);
+          ctx.fillStyle = '#ff0000';
+          ctx.fillRect(23, -4, 5, 8);
+          ctx.restore();
+          
+          // Health bar
+          ctx.fillStyle = '#333';
+          ctx.fillRect(enemy.x - 25, enemy.y - 25, 50, 4);
+          ctx.fillStyle = '#ffc107';
+          ctx.fillRect(enemy.x - 25, enemy.y - 25, (enemy.health / 2) * 50, 4);
+        }
+      }
+      
+      // === UPDATE & DRAW FIREBALLS ===
+      for(let i = fireballs.length - 1; i >= 0; i--) {
+        const fb = fireballs[i];
+        fb.x += fb.vx * dt;
+        fb.y += fb.vy * dt;
+        
+        // Remove if off screen
+        if(fb.x > 1000 || fb.y < 0 || fb.y > 540) {
+          fireballs.splice(i, 1);
+          continue;
+        }
+        
+        // Check collision with enemies
+        for(let j = enemyCars.length - 1; j >= 0; j--) {
+          const enemy = enemyCars[j];
+          const dx = fb.x - enemy.x;
+          const dy = fb.y - enemy.y;
+          if(Math.sqrt(dx*dx + dy*dy) < enemy.size) {
+            enemy.health--;
+            fireballs.splice(i, 1);
+            
+            // Hit particles
+            for(let k = 0; k < 8; k++) {
+              particles.push({
+                x: fb.x,
+                y: fb.y,
+                vx: (Math.random() - 0.5) * 200,
+                vy: (Math.random() - 0.5) * 200,
+                life: 0.6,
+                age: 0,
+                color: '#ff6600'
+              });
+            }
+            
+            if(enemy.health <= 0) {
+              enemyCars.splice(j, 1);
+              dragonScore += enemy.type === 'tank' ? 30 : enemy.type === 'turret' ? 20 : 10;
+              document.getElementById('dragonScore').textContent = dragonScore;
+              
+              // Explosion
+              for(let k = 0; k < 15; k++) {
+                explosions.push({
+                  x: enemy.x,
+                  y: enemy.y,
+                  age: 0,
+                  maxAge: 1
+                });
+                particles.push({
+                  x: enemy.x,
+                  y: enemy.y,
+                  vx: (Math.random() - 0.5) * 300,
+                  vy: (Math.random() - 0.5) * 300,
+                  life: 1,
+                  age: 0,
+                  color: Math.random() > 0.5 ? '#ff6600' : '#ffaa00'
+                });
+              }
+            }
+            break;
+          }
+        }
+        
+        if(i < 0 || i >= fireballs.length) continue;
+        
+        // Draw fireball with trail
+        ctx.shadowBlur = 20;
+        ctx.shadowColor = '#ff6600';
+        ctx.fillStyle = '#ff6600';
+        ctx.beginPath();
+        ctx.arc(fb.x, fb.y, fb.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#ffaa00';
+        ctx.beginPath();
+        ctx.arc(fb.x - 5, fb.y, fb.size * 0.6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        
+        // Trail
+        ctx.fillStyle = 'rgba(255, 102, 0, 0.3)';
+        ctx.beginPath();
+        ctx.arc(fb.x - 15, fb.y, fb.size * 0.7, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      
+      // === UPDATE & DRAW PARTICLES ===
+      for(let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        p.age += dt;
+        
+        if(p.age >= p.life) {
+          particles.splice(i, 1);
+          continue;
+        }
+        
+        const alpha = 1 - (p.age / p.life);
+        ctx.fillStyle = p.color + Math.floor(alpha * 255).toString(16).padStart(2, '0');
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      
+      // === UPDATE & DRAW EXPLOSIONS ===
+      for(let i = explosions.length - 1; i >= 0; i--) {
+        const exp = explosions[i];
+        exp.age += dt;
+        
+        if(exp.age >= exp.maxAge) {
+          explosions.splice(i, 1);
+          continue;
+        }
+        
+        const progress = exp.age / exp.maxAge;
+        const size = 80 * (1 - progress);
+        const alpha = 1 - progress;
+        
+        ctx.fillStyle = `rgba(255, 102, 0, ${alpha})`;
+        ctx.beginPath();
+        ctx.arc(exp.x, exp.y, size, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.fillStyle = `rgba(255, 170, 0, ${alpha * 0.7})`;
+        ctx.beginPath();
+        ctx.arc(exp.x, exp.y, size * 0.7, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.fillStyle = `rgba(255, 255, 0, ${alpha * 0.5})`;
+        ctx.beginPath();
+        ctx.arc(exp.x, exp.y, size * 0.4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      
+      // === DRAW DRAGON (flying forward on left side) ===
+      ctx.save();
+      ctx.translate(dragonX, dragonY);
+      
+      const wingFlap = Math.sin(Date.now() / 150) * 0.4;
+      
+      // Dragon faces RIGHT (flying forward)
+      
+      // Tail (behind)
+      ctx.strokeStyle = '#f44336';
+      ctx.lineWidth = 18;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(-40, 0);
+      ctx.quadraticCurveTo(-60, 10, -70, 5);
+      ctx.stroke();
+      
+      // Wings (flapping)
+      ctx.fillStyle = '#e63946';
+      
+      // Top wing
+      ctx.save();
+      ctx.rotate(wingFlap - 0.3);
+      ctx.beginPath();
+      ctx.moveTo(-10, -10);
+      ctx.lineTo(-40, -50);
+      ctx.lineTo(-20, -15);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+      
+      // Bottom wing
+      ctx.save();
+      ctx.rotate(-wingFlap + 0.3);
+      ctx.beginPath();
+      ctx.moveTo(-10, 10);
+      ctx.lineTo(-40, 50);
+      ctx.lineTo(-20, 15);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+      
+      // Body
+      ctx.fillStyle = '#f44336';
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 45, 28, 0, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Belly
+      ctx.fillStyle = '#ff7961';
+      ctx.beginPath();
+      ctx.ellipse(5, 0, 35, 22, 0, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Head (facing right)
+      ctx.fillStyle = '#f44336';
+      ctx.beginPath();
+      ctx.ellipse(40, 0, 30, 25, 0, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Snout
+      ctx.fillStyle = '#ff7961';
+      ctx.beginPath();
+      ctx.ellipse(62, 0, 20, 16, 0, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Nostrils
+      ctx.fillStyle = '#000';
+      ctx.beginPath();
+      ctx.ellipse(72, -6, 4, 5, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(72, 6, 4, 5, 0, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Eye (looking forward)
+      ctx.fillStyle = '#fff';
+      ctx.beginPath();
+      ctx.ellipse(48, -12, 12, 14, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.beginPath();
+      ctx.ellipse(48, 12, 12, 14, 0, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.ellipse(48, -12, 12, 14, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.ellipse(48, 12, 12, 14, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      
+      // Pupils
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = '#ff3300';
+      ctx.fillStyle = '#ff3300';
+      ctx.beginPath();
+      ctx.ellipse(52, -12, 6, 8, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(52, 12, 6, 8, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      
+      // Highlights
+      ctx.fillStyle = '#ffeb3b';
+      ctx.beginPath();
+      ctx.arc(50, -15, 3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(50, 9, 3, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Horns
+      ctx.fillStyle = '#ff9800';
+      ctx.strokeStyle = '#f57c00';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(30, -22);
+      ctx.lineTo(28, -38);
+      ctx.lineTo(35, -24);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      
+      ctx.beginPath();
+      ctx.moveTo(45, -24);
+      ctx.lineTo(45, -40);
+      ctx.lineTo(50, -26);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      
+      // Spikes on back
+      const spikes = [{x: -5, y: -25}, {x: 15, y: -27}, {x: 30, y: -25}];
+      spikes.forEach(spike => {
+        ctx.fillStyle = '#ff9800';
+        ctx.beginPath();
+        ctx.moveTo(spike.x, spike.y);
+        ctx.lineTo(spike.x - 5, spike.y - 12);
+        ctx.lineTo(spike.x + 5, spike.y - 12);
+        ctx.closePath();
+        ctx.fill();
+      });
+      
+      ctx.restore();
+      
+      requestAnimationFrame(loop);
+    }
+    
+    loop();
+  }
+
+  function showDragonGameOver() {
+    const score = document.getElementById('dragonScore').textContent;
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+      position:fixed;top:0;left:0;right:0;bottom:0;
+      background:rgba(0,0,0,0.9);
+      display:flex;align-items:center;justify-content:center;
+      z-index:12000;
+    `;
+    overlay.innerHTML = `
+      <div style="background:#0e121a;border:3px solid #ff6600;border-radius:16px;padding:40px;text-align:center">
+        <h1 style="margin:0 0 20px;font-size:36px;color:#ff6600">🐉 GAME OVER 🐉</h1>
+        <p style="margin:0 0 12px;font-size:24px;color:#e7e7e7">Final Score: ${score}</p>
+        <button onclick="location.reload()" style="margin-top:24px;padding:12px 24px;background:#6a5acd;color:#fff;border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer">
+          🔄 Play Again
+        </button>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+  }
+
+  function startLevel(idx){
+    // Reset story when starting from level 0
+    if(idx === 0) {
+      resetStory();
+    }
+    
+    buildLevel(idx);
+    cars.length=0; angryCars.length=0; bullets.length=0; particles.length=0; weatherParticles.length=0; hitCount=0; hitCooldown=0; gameOver=false; ruleProg=0;
+
+    const {rule,text}=genRule(idx); currentRule=rule; ui.ruleText.textContent=text;
+    timeLeft = genTime(idx); hitsAllowed = genHitsAllowed(idx);
+    // combine biome + weather physics
+    physics = {
+      accel: currentBiome.physics.accel * currentWeather.physics.accel,
+      steer: currentBiome.physics.steer * currentWeather.physics.steer,
+      drag:  currentBiome.physics.drag  * currentWeather.physics.drag,
+      max:   currentBiome.physics.max   * 1
+    };
+    maxSpeed=(200+Math.min(idx*10,60))*physics.max;
+
+    // shield every 3 levels
+    shield = ((idx+1)%3===0) ? 1 : 0;
+    // Shield display removed - now shown in power-up line
+    
+    // Spawn coins in this level
+    spawnCoins(idx);
+    
+    // Spawn DRAGON (levels 32+)
+    dragon = null; // Reset
+    if(idx >= 30) {
+      const comboChance = idx >= 42 ? 0.80 : 0.45;
+      if(Math.random() < comboChance) {
+        dragon = new Dragon(lotMemo, idx);
+        // Shoot first fireball at level start
+        dragon.shootFireball();
+        console.log(`Dragon spawned on ${dragon.side} side!`);
+      }
+    }
+    
+    updatePowerupDisplay();
+
+    ui.level.textContent=idx+1;
+    ui.bestLevel.textContent=bestLevel;
+    ui.hits.textContent=hitCount;
+    ui.hitsAllowed.textContent=// ui.hitsAllowed2.textContent=hitsAllowed;
+    ui.time.textContent=Math.ceil(timeLeft);
+    ui.dmgFill.style.width='0%';
+    ui.biome.textContent=currentBiome.name;
+    ui.vehicle.textContent=(currentBiome.theme==='boats'?'Boats': currentBiome.theme==='trucks'?'Trucks': currentBiome.theme==='oldcars'?'Old Cars':'Cars');
+
+    const sp=spawns[0];
+    const pal=palettes[currentBiome.theme]||palettes.cars;
+    const kind=(currentBiome.theme==='boats'?'boat': currentBiome.theme==='trucks'?'truck': currentBiome.theme==='oldcars'?'car':'car');
+    player=new Vehicle(sp.x,sp.y,sp.angle,pal[rndi(0,pal.length-1)],kind);
+    cars.push(player);
+
+    // fill some NPC parked vehicles - gradual increase for 100 levels
+    const base=Math.floor(spots.length * 0.5); // Can use up to 50% of spots
+    // Level 0=2, Level 20=6, Level 50=12, Level 100=22
+    const n=idx===0 ? 2 : Math.max(2, Math.min(2 + Math.floor(idx*0.2), base));
+    let placed=0, guard=0;
+    while(placed<n && guard<spots.length*3){
+      const s=spots[rndi(0,spots.length-1)]; guard++;
+      if(s.occupied) continue;
+      s.occupied=true;
+      const npc=new Vehicle(s.x+s.w/2, s.y+s.h/2, 0, '#f9c74f', kind);
+      npc.parked=true; cars.push(npc); placed++;
+    }
+
+    // RED rule: choose target spots (avoid spots covered by holes or fire holes)
+    if(currentRule.type==='red'){
+      const toPick=Math.min(currentRule.n, spots.length);
+      let attempts = 0;
+      const maxAttempts = spots.length * 3;
+      
+      while(redSpots.length < toPick && attempts < maxAttempts){
+        const s=spots[rndi(0,spots.length-1)];
+        attempts++;
+        
+        // Skip if already occupied or already red
+        if(s.occupied || s.red) continue;
+        
+        // Check if spot is NOT hidden under a hole
+        let tooCloseToHole = false;
+        for(const hole of holes) {
+          const dx = (s.x + s.w/2) - (hole.x + hole.w/2);
+          const dy = (s.y + s.h/2) - (hole.y + hole.h/2);
+          const dist = Math.sqrt(dx*dx + dy*dy);
+          if(dist < 60) { // Don't put red spot within 60px of a hole
+            tooCloseToHole = true;
+            break;
+          }
+        }
+        
+        if(!tooCloseToHole) {
+          s.red=true; 
+          redSpots.push(s);
+        }
+      }
+      
+      // Update rule to actual number found (in case we couldn't find enough valid spots)
+      currentRule.n=redSpots.length;
+      
+      if(redSpots.length < toPick) {
+        console.warn(`Level ${idx+1}: Only found ${redSpots.length} valid red spots out of ${toPick} requested`);
+      }
+    }
+
+    // update goal numbers
+    const {need}=evaluateRule(currentRule,true);
+    ruleNeed=need; ui.ruleNeed.textContent=ruleNeed; ui.ruleProg.textContent=0;
+    
+    // Spawn PATROL ANGRY CARS - START FROM LEVEL 1 (for testing)
+    let angryCarsToSpawn = 0;
+    if(idx >= 16 && idx < 32) {
+      // Level 1=2 angry cars (easy to see)
+      angryCarsToSpawn = 2;
+    } else if(idx >= 32) {
+      // After level 32, angry cars can appear based on combo chance
+      const comboChance = idx >= 42 ? 0.80 : 0.45;
+      if(Math.random() < comboChance) {
+        angryCarsToSpawn = rndi(1, 3); // 1-3 angry cars if combo active
+      }
+    }
+    
+    if(angryCarsToSpawn > 0) {
+      const lot = lotMemo;
+      const playerSpawn = spawns[0];
+      
+      for(let i = 0; i < angryCarsToSpawn; i++) {
+        // Choose two random patrol points FAR from player spawn
+        let patrol1X, patrol1Y, patrol2X, patrol2Y;
+        let attempts = 0;
+        
+        do {
+          patrol1X = lot.x + rnd(80, lot.w - 80);
+          patrol1Y = lot.y + rnd(80, lot.h - 80);
+          const dx = patrol1X - playerSpawn.x;
+          const dy = patrol1Y - playerSpawn.y;
+          const dist = Math.sqrt(dx*dx + dy*dy);
+          attempts++;
+          if(dist > 200 || attempts > 20) break;
+        } while(true);
+        
+        attempts = 0;
+        do {
+          patrol2X = lot.x + rnd(80, lot.w - 80);
+          patrol2Y = lot.y + rnd(80, lot.h - 80);
+          const dx = patrol2X - patrol1X;
+          const dy = patrol2Y - patrol1Y;
+          const dist = Math.sqrt(dx*dx + dy*dy);
+          attempts++;
+          if(dist > 150 || attempts > 20) break; // At least 150px apart
+        } while(true);
+        
+        // Create angry patrol car with two waypoints
+        const angry = new AngryVehicle(patrol1X, patrol1Y, lot, idx, true, {x: patrol1X, y: patrol1Y}, {x: patrol2X, y: patrol2Y});
+        angryCars.push(angry);
+        console.log(`Patrol car ${i+1} spawned, patrolling between (${Math.round(patrol1X)}, ${Math.round(patrol1Y)}) and (${Math.round(patrol2X)}, ${Math.round(patrol2Y)})`);
+      }
+    }
+  }
+
+  // ----- Update & Draw
+  function drawProps(){
+  for (const p of props){
+    if (p.type==='bar'){
+      ctx.fillStyle = '#3a4354';
+ctx.fillRect(p.x, p.y, p.w, p.h);
+ctx.strokeStyle = '#56627a';
+
+      ctx.lineWidth = 1; ctx.strokeRect(p.x, p.y, p.w, p.h);
+    } else if (p.type==='lamp'){
+      ctx.save();
+      // Lamp post/pole
+      ctx.fillStyle = '#98a3b8';
+      ctx.fillRect(p.x - 1.5, p.y, 3, 16);
+      
+      // Lamp bulb
+      ctx.fillStyle = '#ffe8a6';
+      ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, PI2); ctx.fill();
+      
+      // Simple glow
+      ctx.globalAlpha = 0.15;
+      ctx.fillStyle = '#ffdca6';
+      ctx.beginPath(); ctx.arc(p.x, p.y, 28, 0, PI2); ctx.fill();
+      ctx.globalAlpha = 1; 
+      ctx.restore();
+    } else if (p.type==='island'){
+      ctx.fillStyle = '#2b3a28';
+      ctx.fillRect(p.x, p.y, p.w, p.h);
+      ctx.strokeStyle = '#3f553a';
+      ctx.lineWidth = 2; ctx.strokeRect(p.x, p.y, p.w, p.h);
+      ctx.fillStyle = 'rgba(155,230,118,0.25)';
+      for (let i=0;i<6;i++){
+        ctx.beginPath();
+        ctx.arc(p.x + rnd(8,p.w-8), p.y + rnd(6,p.h-6), rnd(2,4), 0, PI2);
+        ctx.fill();
+      }
+    } else if (p.type==='bump'){
+      ctx.fillStyle = '#a89b6b';
+      ctx.fillRect(p.x, p.y, p.w, p.h);
+    } else if (p.type==='cone'){
+      ctx.fillStyle = '#ff7a2a';
+      ctx.fillRect(p.x, p.y, p.w, p.h);
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(p.x, p.y+3, p.w, 2);
+    } else if (p.type==='tree'){
+      ctx.fillStyle = 'rgba(0,0,0,0.25)';
+      ctx.beginPath(); ctx.arc(p.x+2, p.y+2, p.r, 0, PI2); ctx.fill();
+      ctx.fillStyle = '#315a39';
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, PI2); ctx.fill();
+      ctx.strokeStyle = '#2a4b31'; ctx.lineWidth = 2; ctx.stroke();
+    }
+    else if (p.type==='gateStripe'){
+    // Soft yellow stripes with a gentle glow so they pop but don't glare
+    ctx.save();
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = 'rgba(255, 224, 138, 0.8)'; // glow
+    ctx.fillStyle = '#ffe08a';                    // soft yellow
+    ctx.fillRect(p.x, p.y, p.w, p.h);
+    ctx.shadowBlur = 0;
+    ctx.restore();
+
+  } else if (p.type==='gateSign'){
+    // Small "ENTRY" tag in soft mint for readability
+    ctx.save();
+    const w = 54, h = 20;
+    ctx.translate(p.x, p.y);
+    // place the sign just outside the lot edge depending on side
+    if (p.side==='left')  ctx.translate(-14, 0);
+    if (p.side==='right') ctx.translate( 14, 0);
+    if (p.side==='top')   ctx.translate(0, -12);
+    if (p.side==='bottom')ctx.translate(0,  12);
+
+    ctx.fillStyle = '#1a2330';           // dark plate
+    ctx.fillRect(-w/2, -h/2, w, h);
+    ctx.strokeStyle = '#7ee787';         // soft mint border
+    ctx.lineWidth = 2;
+    ctx.strokeRect(-w/2, -h/2, w, h);
+
+    ctx.fillStyle = '#7ee787';
+    ctx.font = '10px ui-monospace,Menlo,monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('ENTRY', 0, 0);
+    ctx.restore();
+	}
+    
+  }
+}
+
+  function drawWorld(){
+    // background & lot
+    ctx.fillStyle=currentBiome.ground; ctx.fillRect(0,0,W,H);
+    const lot=lotMemo; ctx.fillStyle=currentBiome.lot;
+    if(lotShape==='circle'){ ctx.beginPath(); ctx.arc(lot.x+lot.w/2,lot.y+lot.h/2,Math.min(lot.w,lot.h)/2-2,0,PI2); ctx.fill(); }
+    else { ctx.fillRect(lot.x,lot.y,lot.w,lot.h); }
+    // Subtle depth around lot
+if(lotShape!=='circle'){
+  // outer drop shadow
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,0.35)';
+  ctx.shadowBlur = 22;
+  ctx.shadowOffsetY = 8;
+  ctx.strokeStyle = 'rgba(0,0,0,0)';
+  ctx.lineWidth = 14;
+  ctx.strokeRect(lot.x+6, lot.y+6, lot.w-12, lot.h-12);
+  ctx.restore();
+
+  // curb highlight on inner edge
+  ctx.save();
+  const curb = ctx.createLinearGradient(lot.x, lot.y, lot.x, lot.y+18);
+  curb.addColorStop(0, 'rgba(255,255,255,0.08)');
+  curb.addColorStop(1, 'rgba(255,255,255,0.0)');
+  ctx.fillStyle = curb;
+  ctx.fillRect(lot.x, lot.y, lot.w, 18);
+  ctx.restore();
+}
+
+    ctx.strokeStyle='rgba(11,13,18,.55)'; ctx.lineWidth=6;
+    if(lotShape!=='circle'){ ctx.strokeRect(lot.x+12,lot.y+12,lot.w-24,lot.h-24); }
+    else { ctx.beginPath(); ctx.arc(lot.x+lot.w/2,lot.y+lot.h/2,Math.min(lot.w,lot.h)/2-22,0,PI2); ctx.stroke(); }
+
+    // Draw collapsing floor holes (deadly hazards)
+    for(const hole of holes) {
+      ctx.save();
+      
+      // Dark pit with gradient
+      const gradient = ctx.createRadialGradient(hole.x + hole.w/2, hole.y + hole.h/2, 0, hole.x + hole.w/2, hole.y + hole.h/2, hole.r);
+      gradient.addColorStop(0, '#000000');
+      gradient.addColorStop(0.7, '#1a1a1a');
+      gradient.addColorStop(1, '#2a2a2a');
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(hole.x + hole.w/2, hole.y + hole.h/2, hole.r, 0, PI2);
+      ctx.fill();
+      
+      // Danger border - pulsing red warning
+      const pulse = Math.sin(Date.now() / 300) * 0.3 + 0.7;
+      ctx.strokeStyle = `rgba(239, 71, 111, ${pulse})`;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(hole.x + hole.w/2, hole.y + hole.h/2, hole.r + 2, 0, PI2);
+      ctx.stroke();
+      
+      // Inner shadow effect
+      ctx.strokeStyle = 'rgba(0,0,0,0.8)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(hole.x + hole.w/2, hole.y + hole.h/2, hole.r - 3, 0, PI2);
+      ctx.stroke();
+      
+      ctx.restore();
+    }
+    
+    // Draw FIRE HOLES (created by dragon fireballs)
+    for(const fh of fireHoles) {
+      ctx.save();
+      
+      // Aging effect - fade over time
+      const fadeAlpha = 1 - (fh.age / fh.maxAge);
+      
+      // Burning fire with animated flames
+      const pulse = Math.sin(Date.now() / 150 + fh.x) * 0.3 + 0.7;
+      const fireGrad = ctx.createRadialGradient(fh.x, fh.y, 0, fh.x, fh.y, fh.r);
+      fireGrad.addColorStop(0, `rgba(255, 255, 0, ${fadeAlpha})`);
+      fireGrad.addColorStop(0.3, `rgba(255, 102, 0, ${fadeAlpha * 0.9})`);
+      fireGrad.addColorStop(0.7, `rgba(255, 0, 0, ${fadeAlpha * 0.6})`);
+      fireGrad.addColorStop(1, `rgba(139, 0, 0, 0)`);
+      ctx.fillStyle = fireGrad;
+      ctx.beginPath();
+      ctx.arc(fh.x, fh.y, fh.r * pulse, 0, PI2);
+      ctx.fill();
+      
+      // Flickering glow
+      ctx.shadowBlur = 20 * fadeAlpha;
+      ctx.shadowColor = '#ff6600';
+      ctx.strokeStyle = `rgba(255, 150, 0, ${fadeAlpha * pulse})`;
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.arc(fh.x, fh.y, fh.r, 0, PI2);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      
+      // Inner dark core
+      ctx.fillStyle = `rgba(40, 0, 0, ${fadeAlpha * 0.7})`;
+      ctx.beginPath();
+      ctx.arc(fh.x, fh.y, fh.r * 0.4, 0, PI2);
+      ctx.fill();
+      
+      // Random flame particles
+      if(Math.random() < 0.5) {
+        ctx.fillStyle = `rgba(255, ${Math.floor(Math.random() * 100)}, 0, ${fadeAlpha * Math.random()})`;
+        const rx = fh.x + rnd(-fh.r, fh.r);
+        const ry = fh.y + rnd(-fh.r, fh.r);
+        ctx.beginPath();
+        ctx.arc(rx, ry, rnd(2, 5), 0, PI2);
+        ctx.fill();
+      }
+      
+      ctx.restore();
+    }
+
+    ctx.strokeStyle=currentBiome.line; ctx.lineWidth=4; const margin=14;
+    if(lotShape==='rect'){
+      for(let x=lot.x+margin+36;x<lot.x+lot.w-margin-36;x+=48){ ctx.beginPath(); ctx.moveTo(x,lot.y+margin); ctx.lineTo(x,lot.y+lot.h-margin); ctx.stroke(); }
+    } else if(lotShape==='diagonal'){
+      for(let y=lot.y+margin+12;y<lot.y+lot.h-margin-12;y+=36){ ctx.beginPath(); ctx.moveTo(lot.x+margin,y); ctx.lineTo(lot.x+lot.w-margin,y-24); ctx.stroke(); }
+    } else { ctx.beginPath(); ctx.arc(lot.x+lot.w/2, lot.y+lot.h/2, Math.min(lot.w,lot.h)/2-40, 0, PI2); ctx.stroke(); }
+
+    // Draw enhanced parking spots
+    for(const s of spots){
+      // Elevated platform background
+      if(s.elev === 1){
+        ctx.fillStyle = 'rgba(50,60,80,0.4)';
+        ctx.fillRect(s.x-8, s.y-8, s.w+16, s.h+16);
+        ctx.strokeStyle = 'rgba(70,80,100,0.6)';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(s.x-8, s.y-8, s.w+16, s.h+16);
+      }
+      
+      if(!s.occupied){
+        ctx.save();
+        // Pulse effect for empty spots
+        const pulse = Math.sin(Date.now() / 400) * 0.15 + 0.85;
+        ctx.globalAlpha = 0.25 * pulse;
+        ctx.fillStyle = currentRule.type==='red' && !s.red ? '#555' : '#9be676';
+        ctx.fillRect(s.x, s.y, s.w, s.h);
+        
+        // Border glow
+        ctx.globalAlpha = 0.6;
+        ctx.strokeStyle = currentRule.type==='red' && !s.red ? '#666' : '#9be676';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(s.x, s.y, s.w, s.h);
+        ctx.restore();
+      }
+    }
+
+    // red targets with better graphics
+    if(currentRule.type==='red'){
+      for(const s of redSpots){
+        ctx.save();
+        // Animated red spots
+        const pulse = Math.sin(Date.now() / 300) * 0.2 + 0.8;
+        ctx.globalAlpha=0.7 * pulse; 
+        ctx.fillStyle='#ff3347';
+        ctx.beginPath(); ctx.arc(s.x+s.w/2, s.y+s.h/2, 16, 0, PI2); ctx.fill();
+        ctx.globalAlpha=0.9;
+        ctx.lineWidth=3; ctx.strokeStyle='#7a0b18'; ctx.stroke();
+        // Inner glow
+        ctx.globalAlpha=0.4;
+        ctx.fillStyle='#ff6b7a';
+        ctx.beginPath(); ctx.arc(s.x+s.w/2, s.y+s.h/2, 10, 0, PI2); ctx.fill();
+        ctx.restore();
+      } 
+    }
+    // draw extra props (bars, lamps, islands, bumps, cones, trees)
+		drawProps();
+
+
+    // obstacles (boxes/buoys) with shadows - CARTOONISH!
+    for(const b of boxes){
+      ctx.save();
+      
+      // Bigger, softer shadow
+      ctx.fillStyle='rgba(0,0,0,0.25)';
+      if(currentBiome.theme==='boats'){ 
+        const r=Math.min(b.w,b.h)/2; 
+        ctx.beginPath(); ctx.arc(b.x+b.w/2+3,b.y+b.h/2+4,r+2,0,PI2); ctx.fill();
+      } else {
+        ctx.beginPath();
+        ctx.roundRect(b.x+3,b.y+4,b.w,b.h,6);
+        ctx.fill();
+      }
+      
+      // Thick cartoon outline
+      ctx.strokeStyle='#0a0d12';
+      ctx.lineWidth=3;
+      
+      // Brighter, more saturated colors
+      const brightFill = (currentBiome.theme==='boats')? '#ffb84d' : '#d89850';
+      const brightStroke = (currentBiome.theme==='boats')? '#ff8c1a' : '#a06030';
+      
+      if(currentBiome.theme==='boats'){ 
+        // Buoys - cute and round
+        const r=Math.min(b.w,b.h)/2;
+        
+        // Main body with gradient
+        const buoyGrad = ctx.createRadialGradient(b.x+b.w/2-3, b.y+b.h/2-3, 0, b.x+b.w/2, b.y+b.h/2, r);
+        buoyGrad.addColorStop(0, brightFill);
+        buoyGrad.addColorStop(1, brightStroke);
+        ctx.fillStyle = buoyGrad;
+        ctx.beginPath(); ctx.arc(b.x+b.w/2,b.y+b.h/2,r,0,PI2); ctx.fill(); 
+        
+        // Outline
+        ctx.stroke();
+        
+        // Cute stripes
+        ctx.strokeStyle='#ffffff';
+        ctx.lineWidth=2;
+        ctx.beginPath();
+        ctx.arc(b.x+b.w/2, b.y+b.h/2-r/3, r*0.8, 0, PI2);
+        ctx.stroke();
+        
+      } else { 
+        // Crates - with wood texture
+        const boxGrad = ctx.createLinearGradient(b.x, b.y, b.x, b.y+b.h);
+        boxGrad.addColorStop(0, brightFill);
+        boxGrad.addColorStop(1, brightStroke);
+        ctx.fillStyle = boxGrad;
+        ctx.beginPath();
+        ctx.roundRect(b.x,b.y,b.w,b.h,6);
+        ctx.fill();
+        ctx.stroke();
+        
+        // Wood planks
+        ctx.strokeStyle='#8b5a2b';
+        ctx.lineWidth=1.5;
+        ctx.beginPath();
+        ctx.moveTo(b.x+b.w*0.3, b.y);
+        ctx.lineTo(b.x+b.w*0.3, b.y+b.h);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(b.x+b.w*0.7, b.y);
+        ctx.lineTo(b.x+b.w*0.7, b.y+b.h);
+        ctx.stroke();
+        
+        // Shine
+        ctx.fillStyle='rgba(255,255,255,0.3)';
+        ctx.beginPath();
+        ctx.ellipse(b.x+b.w*0.3, b.y+b.h*0.25, b.w*0.2, b.h*0.15, 0, 0, PI2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    // mud zones with texture
+    if(currentBiome.mud){
+      for(const m of mudZones){
+        ctx.fillStyle='rgba(80,54,28,0.9)'; ctx.fillRect(m.x,m.y,m.w,m.h);
+        ctx.strokeStyle='rgba(30,18,10,0.6)'; ctx.strokeRect(m.x,m.y,m.w,m.h);
+        // Mud texture
+        ctx.fillStyle='rgba(60,40,20,0.3)';
+        for(let i=0; i<8; i++){
+          ctx.fillRect(m.x + Math.random()*m.w, m.y + Math.random()*m.h, 4, 2);
+        }
+      }
+    }
+    // Gentle always-on vignette (not night mode)
+ctx.save();
+const vg = ctx.createRadialGradient(W/2, H/2, Math.min(W,H)*0.45, W/2, H/2, Math.min(W,H)*0.8);
+vg.addColorStop(0, 'rgba(0,0,0,0.0)');
+vg.addColorStop(1, 'rgba(0,0,0,0.10)');
+ctx.fillStyle = vg;
+ctx.fillRect(0,0,W,H);
+ctx.restore();
+
+  }
+
+  function drawActors(){
+    // moving obstacles & pedestrians - CARTOONISH!
+    for(const o of moving){
+      ctx.save();
+      if(o.type==='pedestrian'){ 
+        // Cute bouncy pedestrian
+        const bounce = Math.sin(Date.now() / 200 + o.x) * 2;
+        
+        // Body
+        ctx.fillStyle='#ff9999'; 
+        ctx.strokeStyle='#cc5555';
+        ctx.lineWidth=2;
+        ctx.beginPath(); 
+        ctx.arc(o.x, o.y + bounce, 8, 0, PI2); 
+        ctx.fill(); 
+        ctx.stroke();
+        
+        // Happy face
+        ctx.fillStyle='#000';
+        ctx.beginPath(); ctx.arc(o.x-3, o.y-2+bounce, 1.5, 0, PI2); ctx.fill();
+        ctx.beginPath(); ctx.arc(o.x+3, o.y-2+bounce, 1.5, 0, PI2); ctx.fill();
+        ctx.strokeStyle='#000';
+        ctx.lineWidth=1.5;
+        ctx.beginPath(); ctx.arc(o.x, o.y+2+bounce, 3, 0, Math.PI); ctx.stroke();
+      }
+      else { 
+        // Cartoonish enemy car
+        const wobble = Math.sin(Date.now() / 300 + o.x) * 1;
+        
+        // Shadow
+        ctx.globalAlpha=0.3;
+        ctx.fillStyle='#000';
+        ctx.fillRect(o.x-o.w/2+2, o.y-o.h/2+10, o.w, o.h);
+        ctx.globalAlpha=1;
+        
+        // Body with outline
+        ctx.fillStyle = o.canShoot ? '#ff6b6b' : '#888'; // Red if can shoot
+        ctx.strokeStyle='#0a0d12';
+        ctx.lineWidth=2;
+        ctx.beginPath();
+        ctx.roundRect(o.x-o.w/2, o.y-o.h/2+wobble, o.w, o.h, 6);
+        ctx.fill();
+        ctx.stroke();
+        
+        // Windshield
+        ctx.fillStyle='#444';
+        ctx.fillRect(o.x-o.w/2+4, o.y-o.h/2+4+wobble, o.w-8, 6);
+        
+        // Evil eyes if can shoot
+        if(o.canShoot) {
+          ctx.fillStyle='#ffff00';
+          ctx.beginPath(); ctx.arc(o.x-6, o.y-o.h/2+7+wobble, 2, 0, PI2); ctx.fill();
+          ctx.beginPath(); ctx.arc(o.x+6, o.y-o.h/2+7+wobble, 2, 0, PI2); ctx.fill();
+          
+          // Gun indicator
+          ctx.fillStyle='#ff0000';
+          ctx.font='bold 12px Arial';
+          ctx.textAlign='center';
+          ctx.fillText('🔫', o.x, o.y+o.h/2+wobble+8);
+        }
+      }
+      ctx.restore();
+    }
+    
+    // Draw BULLETS
+    for(const bullet of bullets) {
+      ctx.save();
+      ctx.fillStyle='#ff3347';
+      ctx.strokeStyle='#8b0000';
+      ctx.lineWidth=2;
+      ctx.beginPath();
+      ctx.arc(bullet.x, bullet.y, 4, 0, PI2);
+      ctx.fill();
+      ctx.stroke();
+      
+      // Trail effect
+      ctx.globalAlpha=0.4;
+      ctx.strokeStyle='#ff6b6b';
+      ctx.lineWidth=6;
+      ctx.lineCap='round';
+      ctx.beginPath();
+      ctx.moveTo(bullet.x, bullet.y);
+      ctx.lineTo(bullet.x - bullet.vx*0.02, bullet.y - bullet.vy*0.02);
+      ctx.stroke();
+      ctx.restore();
+    }
+    
+    // coins
+    for(const coin of coins){
+      if(coin.collected) continue;
+      
+      ctx.save();
+      const float = Math.sin(Date.now() / 300 + coin.floatOffset) * 3;
+      const pulse = 0.9 + Math.sin(Date.now() / 200) * 0.1;
+      
+      // Shadow
+      ctx.globalAlpha = 0.3;
+      ctx.fillStyle = '#000';
+      ctx.beginPath();
+      ctx.arc(coin.x, coin.y + 15, coin.r * 0.8, 0, PI2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      
+      // Coin glow
+      const grad = ctx.createRadialGradient(coin.x, coin.y + float, 0, coin.x, coin.y + float, coin.r * 1.5);
+      grad.addColorStop(0, 'rgba(255, 215, 0, 0.6)');
+      grad.addColorStop(1, 'rgba(255, 215, 0, 0)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(coin.x, coin.y + float, coin.r * 1.5, 0, PI2);
+      ctx.fill();
+      
+      // Coin body
+      ctx.fillStyle = '#ffd700';
+      ctx.strokeStyle = '#ffaa00';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(coin.x, coin.y + float, coin.r * pulse, 0, PI2);
+      ctx.fill();
+      ctx.stroke();
+      
+      // Shine
+      ctx.fillStyle = 'rgba(255, 255, 200, 0.7)';
+      ctx.beginPath();
+      ctx.arc(coin.x - 3, coin.y + float - 3, coin.r * 0.4, 0, PI2);
+      ctx.fill();
+      
+      // Symbol
+      ctx.fillStyle = '#ffaa00';
+      ctx.font = 'bold 14px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('$', coin.x, coin.y + float);
+      
+      ctx.restore();
+    }
+    
+    // cars
+    for(const c of cars){
+      c.draw();
+      // Power-up effect on player
+      if(c === player && purchasedPowerup && powerupActive){
+        ctx.save();
+        
+        // Special GUN effect - rotating danger zone
+        if(purchasedPowerup.id === 'gun'){
+          const rotation = Date.now() / 100;
+          
+          // Pulsing danger aura
+          ctx.globalAlpha = 0.3 + Math.sin(Date.now() / 150) * 0.2;
+          const dangerGrad = ctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, 55);
+          dangerGrad.addColorStop(0, 'rgba(239, 71, 111, 0.4)');
+          dangerGrad.addColorStop(1, 'rgba(239, 71, 111, 0)');
+          ctx.fillStyle = dangerGrad;
+          ctx.beginPath();
+          ctx.arc(c.x, c.y, 55, 0, PI2);
+          ctx.fill();
+          
+          // Rotating danger spikes
+          ctx.strokeStyle = '#ef476f';
+          ctx.lineWidth = 4;
+          ctx.lineCap = 'round';
+          for(let i = 0; i < 8; i++) {
+            const angle = rotation + (i * Math.PI / 4);
+            const x1 = c.x + Math.cos(angle) * 35;
+            const y1 = c.y + Math.sin(angle) * 35;
+            const x2 = c.x + Math.cos(angle) * 50;
+            const y2 = c.y + Math.sin(angle) * 50;
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+          }
+          
+          // Center explosive symbol
+          ctx.globalAlpha = 0.8 + Math.sin(Date.now() / 100) * 0.2;
+          ctx.fillStyle = '#ff3347';
+          ctx.font = 'bold 20px Arial';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('💥', c.x, c.y - 35);
+        } else {
+          // Regular power-up circle
+          ctx.globalAlpha = 0.4 + Math.sin(Date.now() / 150) * 0.2;
+          ctx.strokeStyle = purchasedPowerup.color;
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.arc(c.x, c.y, 40, 0, PI2);
+          ctx.stroke();
+        }
+        
+        ctx.restore();
+      }
+    }
+    
+    // Draw DRAGON (outside the lot)
+    if(dragon) {
+      dragon.draw();
+    }
+    
+    // Draw FIREBALLS
+    for(const fb of fireballs) {
+      ctx.save();
+      
+      // Fireball trail
+      const pulse = Math.sin(Date.now() / 100) * 0.3 + 0.7;
+      ctx.globalAlpha = 0.4;
+      const trailGrad = ctx.createRadialGradient(fb.x, fb.y, 0, fb.x, fb.y, fb.size * 2);
+      trailGrad.addColorStop(0, '#ff6600');
+      trailGrad.addColorStop(1, 'rgba(255,102,0,0)');
+      ctx.fillStyle = trailGrad;
+      ctx.beginPath();
+      ctx.arc(fb.x, fb.y, fb.size * 2, 0, PI2);
+      ctx.fill();
+      
+      // Main fireball
+      ctx.globalAlpha = 1;
+      const fireGrad = ctx.createRadialGradient(fb.x, fb.y, 0, fb.x, fb.y, fb.size);
+      fireGrad.addColorStop(0, '#ffff00');
+      fireGrad.addColorStop(0.4, '#ff6600');
+      fireGrad.addColorStop(1, '#ff0000');
+      ctx.fillStyle = fireGrad;
+      ctx.beginPath();
+      ctx.arc(fb.x, fb.y, fb.size * pulse, 0, PI2);
+      ctx.fill();
+      
+      ctx.restore();
+    }
+    
+    // Draw ANGRY CARS
+    if(angryCars.length > 0) {
+      console.log(`Drawing ${angryCars.length} angry cars`);
+    }
+    for(const angry of angryCars) {
+      angry.draw();
+    }
+  }
+
+  function drawWeather(dt){
+    // particles
+    if(currentWeather.particles==='rain'){
+      if(weatherParticles.length<240 && Math.random()>0.6){ weatherParticles.push({x:Math.random()*W,y:-10,vy:400}); }
+      ctx.strokeStyle='rgba(170,200,255,0.55)'; ctx.lineWidth=1;
+      for(let i=weatherParticles.length-1;i>=0;i--){
+        const p=weatherParticles[i]; p.y+=p.vy*dt;
+        if(p.y>H){ weatherParticles.splice(i,1); continue; }
+        ctx.beginPath(); ctx.moveTo(p.x,p.y); ctx.lineTo(p.x,p.y+12); ctx.stroke();
+      }
+    } else if(currentWeather.particles==='snow'){
+      if(weatherParticles.length<180 && Math.random()>0.7){ weatherParticles.push({x:Math.random()*W,y:-10,vy:50+Math.random()*30,vx:Math.random()*20-10}); }
+      ctx.fillStyle='rgba(255,255,255,0.9)';
+      for(let i=weatherParticles.length-1;i>=0;i--){
+        const p=weatherParticles[i]; p.y+=p.vy*dt; p.x+=p.vx*dt;
+        if(p.y>H || p.x<0 || p.x>W){ weatherParticles.splice(i,1); continue; }
+        ctx.beginPath(); ctx.arc(p.x,p.y,2.5,0,PI2); ctx.fill();
+      }
+    } else if(currentWeather.particles==='fog'){
+      ctx.save(); ctx.globalAlpha=1-currentWeather.visibility; ctx.fillStyle='rgba(210,210,210,0.5)'; ctx.fillRect(0,0,W,H); ctx.restore();
+    }
+  }
+
+  // ----- Main loop
+  let last=performance.now();
+  function loop(now){
+    const dt=Math.min(0.033,(now-last)/1000); last=now;
+    try{
+      if(!gameOver) {
+        timeLeft=Math.max(0,timeLeft-dt);
+        if(timeLeft<=0){ addScore(levelIndex); resetStory(); levelIndex=0; startLevel(levelIndex); }
+      }
+
+      if(hitCooldown>0) hitCooldown-=dt;
+      
+      // Coin collision detection
+      for(const coin of coins){
+        if(coin.collected) continue;
+        const dx = player.x - coin.x;
+        const dy = player.y - coin.y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        if(dist < coin.r + 15){ // player radius ~15
+          collectCoin(coin);
+        }
+      }
+      
+      // Power-up timer countdown
+      if(powerupActive && powerupTimer > 0){
+        powerupTimer -= dt;
+        if(powerupTimer <= 0){
+          powerupActive = false;
+          purchasedPowerup = null;
+        }
+        updatePowerupDisplay();
+      }
+      
+      // Apply active power-up effects
+      let speedMultiplier = 1;
+      let gunActive = false;
+      
+      if(powerupActive && purchasedPowerup){
+        if(purchasedPowerup.id === 'speed' || purchasedPowerup.id === 'combo') {
+          speedMultiplier = 2;
+        }
+        if(purchasedPowerup.id === 'shield' || purchasedPowerup.id === 'combo') {
+          shield = 1;
+          // Shield display removed - now shown in power-up line
+        }
+        if(purchasedPowerup.id === 'gun' || purchasedPowerup.id === 'combo') {
+          gunActive = true;
+        }
+      }
+      
+      // Update ANGRY CARS
+      for(let i = angryCars.length - 1; i >= 0; i--) {
+        const angry = angryCars[i];
+        angry.update(dt, player.x, player.y);
+        
+        // Check collision with player
+        const pr = player.rect();
+        const ar = angry.rect();
+        if(overlap(pr, ar)) {
+          if(gunActive) {
+            // Gun destroys angry car!
+            for(let k=0;k<20;k++) {
+              spawnParticle(angry.x, angry.y, rnd(-200,200), rnd(-200,200), rnd(0.5,1.0), '#ff3347');
+            }
+            angryCars.splice(i, 1);
+            continue;
+          }
+          
+          // Push player away
+          const dx = (pr.x + pr.w/2) - (ar.x + ar.w/2);
+          const dy = (pr.y + pr.h/2) - (ar.y + ar.h/2);
+          const px = (pr.w + ar.w)/2 - Math.abs(dx);
+          const py = (pr.h + ar.h)/2 - Math.abs(dy);
+          if(px < py) {
+            player.x += px * Math.sign(dx);
+          } else {
+            player.y += py * Math.sign(dy);
+          }
+          
+          // Take damage
+          if(hitCooldown <= 0) {
+            if(shield > 0) {
+              shield = 0;
+              // Shield display removed - now shown in power-up line
+              for(let k=0;k<8;k++) spawnParticle(player.x, player.y, rnd(-160,160), rnd(-100,100), rnd(0.3,0.7), '#79d2ff');
+            } else {
+              hitCount++;
+              hitCooldown = 0.45;
+              ui.hits.textContent = hitCount;
+              ui.dmgFill.style.width = Math.min(hitCount/hitsAllowed, 1) * 100 + '%';
+              for(let k=0;k<8;k++) spawnParticle(player.x, player.y, rnd(-150,150), rnd(-80,80), rnd(0.3,0.6), '#ef476f');
+              if(hitCount >= hitsAllowed) {
+                addScore(levelIndex);
+                resetStory();
+                levelIndex = 0;
+                startLevel(levelIndex);
+              }
+            }
+          }
+        }
+      }
+
+      // update player physics
+      const accel = (handbrake ? 0 : (keys['ArrowUp']? 180 : (keys['ArrowDown']? -120 : 0)) * physics.accel * speedMultiplier);
+      if(handbrake) player.speed=0;
+      player.speed += accel*dt;
+      player.speed *= (1 - physics.drag*dt);
+      player.speed = clamp(player.speed,-80, maxSpeed * speedMultiplier);
+
+      const steer=(keys['ArrowLeft']?-1:0)+(keys['ArrowRight']?1:0);
+      player.rot += steer*2.6*physics.steer*(player.speed/maxSpeed)*dt;
+      player.x += Math.sin(player.rot)*player.speed*dt*currentWeather.physics.friction;
+      player.y += -Math.cos(player.rot)*player.speed*dt*currentWeather.physics.friction;
+
+      // mud slow
+      if(currentBiome.mud){
+        for(const m of mudZones){
+          if(player.x>m.x && player.x<m.x+m.w && player.y>m.y && player.y<m.y+m.h){
+            player.speed *= (1 - 5.0*dt);
+            const mudMax=maxSpeed*0.35; if(player.speed>mudMax) player.speed=mudMax;
+          }
+        }
+      }
+
+      // bounds
+      player.x=clamp(player.x,0,W); player.y=clamp(player.y,0,H);
+      
+      // Check collision with holes (instant death!)
+      if(!gameOver) {
+        for(const hole of holes) {
+          const dx = player.x - (hole.x + hole.w/2);
+          const dy = player.y - (hole.y + hole.h/2);
+          const dist = Math.sqrt(dx*dx + dy*dy);
+          
+          if(dist < hole.r) {
+            // Player fell into hole - GAME OVER!
+            for(let k=0;k<20;k++) spawnParticle(player.x, player.y, rnd(-200,200), rnd(-200,200), rnd(0.4,1.0), '#ef476f');
+            addScore(levelIndex);
+            resetStory();
+            levelIndex = 0;
+            startLevel(levelIndex);
+            break;
+          }
+        }
+        
+        // Check collision with FIRE HOLES (instant death!)
+        for(const fh of fireHoles) {
+          const dx = player.x - fh.x;
+          const dy = player.y - fh.y;
+          const dist = Math.sqrt(dx*dx + dy*dy);
+          
+          if(dist < fh.r) {
+            // Player burned by fire hole - GAME OVER!
+            for(let k=0;k<25;k++) spawnParticle(player.x, player.y, rnd(-220,220), rnd(-220,220), rnd(0.5,1.2), Math.random() > 0.5 ? '#ff6600' : '#ff0000');
+            addScore(levelIndex);
+            resetStory();
+            levelIndex = 0;
+            startLevel(levelIndex);
+            break;
+          }
+        }
+      }
+      
+      // Update DRAGON and FIREBALLS
+      if(dragon && !gameOver) {
+        dragon.update(dt);
+      }
+      
+      // Update fireballs
+      for(let i = fireballs.length - 1; i >= 0; i--) {
+        const fb = fireballs[i];
+        fb.x += fb.vx * dt;
+        fb.y += fb.vy * dt;
+        fb.age += dt;
+        
+        // Check if fireball reached target or expired
+        if(fb.age >= fb.life) {
+          // Create burning fire hole at impact point
+          fireHoles.push({
+            x: fb.x,
+            y: fb.y,
+            r: 30, // radius
+            age: 0,
+            maxAge: 15 // Lasts 15 seconds
+          });
+          
+          // Visual explosion
+          for(let k=0;k<15;k++) {
+            spawnParticle(fb.x, fb.y, rnd(-180,180), rnd(-180,180), rnd(0.4,0.9), Math.random() > 0.5 ? '#ff6600' : '#ff0000');
+          }
+          
+          fireballs.splice(i, 1);
+          console.log(`Fireball created fire hole at (${Math.round(fb.x)}, ${Math.round(fb.y)})`);
+        }
+      }
+      
+      // Age fire holes (they eventually fade)
+      for(let i = fireHoles.length - 1; i >= 0; i--) {
+        fireHoles[i].age += dt;
+        if(fireHoles[i].age >= fireHoles[i].maxAge) {
+          fireHoles.splice(i, 1);
+        }
+      }
+
+
+      // update moving obstacles AND SHOOT BULLETS
+      for(const o of moving){ 
+        o.x+=o.vx*dt; 
+        o.y+=o.vy*dt;
+        
+        // Shoot bullets at player!
+        if(o.canShoot) {
+          o.shootCooldown -= dt;
+          if(o.shootCooldown <= 0) {
+            const dx = player.x - o.x;
+            const dy = player.y - o.y;
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            
+            // Shoot if player is close enough
+            if(dist < 300) {
+              const speed = 50;
+              bullets.push({
+                x: o.x,
+                y: o.y,
+                vx: (dx/dist) * speed,
+                vy: (dy/dist) * speed,
+                life: 3 // 3 second lifetime
+              });
+              o.shootCooldown = 8; // Shoot every 8 seconds
+            }
+          }
+        }
+      }
+      
+      // Update bullets
+      for(let i=bullets.length-1; i>=0; i--) {
+        const b = bullets[i];
+        b.x += b.vx * dt;
+        b.y += b.vy * dt;
+        b.life -= dt;
+        
+        // Remove if expired or off screen
+        if(b.life <= 0 || b.x < -50 || b.x > W+50 || b.y < -50 || b.y > H+50) {
+          bullets.splice(i, 1);
+          continue;
+        }
+        
+        // Check collision with player
+        const dx = b.x - player.x;
+        const dy = b.y - player.y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        
+        if(dist < 20) { // Hit player!
+          bullets.splice(i, 1);
+          
+          if(hitCooldown <= 0 && !gameOver) {
+            if(shield > 0) {
+              shield = 0;
+              // Shield display removed - now shown in power-up line
+              for(let k=0;k<8;k++) spawnParticle(player.x, player.y, rnd(-160,160), rnd(-100,100), rnd(0.3,0.7), '#79d2ff');
+            } else {
+              hitCount++;
+              hitCooldown = 0.45;
+              ui.hits.textContent = hitCount;
+              ui.dmgFill.style.width = Math.min(hitCount/hitsAllowed, 1) * 100 + '%';
+              for(let k=0;k<12;k++) spawnParticle(player.x, player.y, rnd(-150,150), rnd(-80,80), rnd(0.3,0.6), '#ff3347');
+              if(hitCount >= hitsAllowed) {
+                addScore(levelIndex);
+                resetStory();
+                levelIndex = 0;
+                startLevel(levelIndex);
+              }
+            }
+          }
+        }
+      }
+      
+      // recycle movers that leave screen
+      for(let i=moving.length-1;i>=0;i--){
+        const o=moving[i];
+        if(o.x<-120 || o.x>W+120 || o.y<-120 || o.y>H+120){
+          moving.splice(i,1);
+          // respawn another
+          const type = Math.random()>.5?'pedestrian':'car';
+          const canShoot = levelIndex >= 10 && type === 'car';
+          const w = type==='car'?40:10, h=type==='car'?20:10;
+          let x,y,vx,vy;
+          
+          // Player starts at approximately x=80, y=H/2
+          const PLAYER_START_X = 80;
+          const PLAYER_START_Y = H/2;
+          const SAFE_ZONE = 120;
+          
+          if(Math.random()>.5){ 
+            // Horizontal spawn
+            x=Math.random()>.5?-50:W+50; 
+            // Avoid player Y position if spawning from left
+            if(x < 0) {
+              do {
+                y=lotMemo.y+rnd(30,lotMemo.h-30);
+              } while(Math.abs(y - PLAYER_START_Y) < SAFE_ZONE);
+            } else {
+              y=lotMemo.y+rnd(30,lotMemo.h-30);
+            }
+            vx=(x<0?1:-1)*rnd(50,100); vy=0;
+          } else { 
+            // Vertical spawn - avoid player X position
+            do {
+              x=lotMemo.x+rnd(30,lotMemo.w-30);
+            } while(Math.abs(x - PLAYER_START_X) < SAFE_ZONE);
+            y=Math.random()>.5?-50:H+50; 
+            vx=0; vy=(y<0?1:-1)*rnd(50,100);
+          }
+          moving.push({x,y,w,h,vx,vy,type,canShoot,shootCooldown:rnd(0.5,2)});
+        }
+      }
+
+      // collisions car-car
+      for(let i=0;i<cars.length;i++) for(let j=i+1;j<cars.length;j++){
+        const a=cars[i], b=cars[j]; if(a.parked&&b.parked) continue;
+        const ra=a.rect(), rb=b.rect();
+        if(overlap(ra,rb)){
+          const dx=(ra.x+ra.w/2)-(rb.x+rb.w/2), dy=(ra.y+ra.h/2)-(rb.y+rb.h/2);
+          const px=(ra.w+rb.w)/2 - Math.abs(dx), py=(ra.h+rb.h)/2 - Math.abs(dy);
+          if(px<py){ const sx=Math.sign(dx); a.x+=px/2*sx; b.x-=px/2*sx; } else { const sy=Math.sign(dy); a.y+=py/2*sy; b.y-=py/2*sy; }
+          if(hitCooldown<=0 && (a===player || b===player)){
+            if(shield>0){ shield=0; for(let k=0;k<8;k++) spawnParticle(player.x,player.y,rnd(-160,160),rnd(-100,100),rnd(0.3,0.7),'#79d2ff'); }
+            else { hitCount++; hitCooldown=0.45; ui.hits.textContent=hitCount; ui.dmgFill.style.width=Math.min(hitCount/hitsAllowed,1)*100+'%'; for(let k=0;k<8;k++) spawnParticle(player.x,player.y,rnd(-150,150),rnd(-80,80),rnd(0.3,0.6),'#ef476f'); if(hitCount>=hitsAllowed){ addScore(levelIndex); resetStory(); levelIndex=0; startLevel(levelIndex); } }
+          }
+        }
+      }
+
+      // collisions with boxes
+      for(let idx = boxes.length - 1; idx >= 0; idx--){
+        const b = boxes[idx];
+        const r=player.rect();
+        if(overlap(r,b)){
+          if(gunActive){
+            // GUN: Destroy the obstacle!
+            for(let k=0;k<15;k++) spawnParticle(b.x+b.w/2, b.y+b.h/2, rnd(-180,180), rnd(-180,180), rnd(0.4,0.9), '#ef476f');
+            boxes.splice(idx, 1);
+            continue;
+          }
+          
+          const dx=(r.x+r.w/2)-(b.x+b.w/2), dy=(r.y+r.h/2)-(b.y+b.h/2);
+          const px=(r.w+b.w)/2 - Math.abs(dx), py=(r.h+b.h)/2 - Math.abs(dy);
+          if(px<py) player.x+=px*Math.sign(dx); else player.y+=py*Math.sign(dy);
+          if(hitCooldown<=0 && !gameOver){
+            if(shield>0){ shield=0; for(let k=0;k<8;k++) spawnParticle(player.x,player.y,rnd(-160,160),rnd(-100,100),rnd(0.3,0.7),'#79d2ff'); }
+            else { hitCount++; hitCooldown=0.45; ui.hits.textContent=hitCount; ui.dmgFill.style.width=Math.min(hitCount/hitsAllowed,1)*100+'%'; for(let k=0;k<8;k++) spawnParticle(player.x,player.y,rnd(-150,150),rnd(-80,80),rnd(0.3,0.6),'#ef476f'); if(hitCount>=hitsAllowed){ addScore(levelIndex); resetStory(); levelIndex=0; startLevel(levelIndex); } }
+          }
+        }
+      }
+      
+      // collisions with props (rects & circles). bumps only slow (no damage).
+for (let idx = props.length - 1; idx >= 0; idx--){
+  const p = props[idx];
+  if (!p.collide) continue;
+
+  const r = player.rect();
+  let propHit = false;
+  
+  if (p.shape === 'rect'){
+    const b = {x:p.x, y:p.y, w:p.w, h:p.h};
+    if (overlap(r, b)){
+      propHit = true;
+      
+      if(gunActive && p.type !== 'bump'){
+        // GUN: Destroy the prop!
+        const px = p.x + p.w/2;
+        const py = p.y + p.h/2;
+        for(let k=0;k<12;k++) spawnParticle(px, py, rnd(-160,160), rnd(-160,160), rnd(0.4,0.8), '#ef476f');
+        props.splice(idx, 1);
+        continue;
+      }
+      
+      if (p.type === 'bump'){
+        player.speed *= 0.75;
+        for(let k=0;k<3;k++) spawnParticle(player.x,player.y,rnd(-80,80),rnd(-50,50),rnd(0.15,0.3),'#ffd166');
+      } else {
+        const dx=(r.x+r.w/2)-(b.x+b.w/2), dy=(r.y+r.h/2)-(b.y+b.h/2);
+        const px=(r.w+b.w)/2 - Math.abs(dx), py=(r.h+b.h)/2 - Math.abs(dy);
+        if (px<py) player.x+=px*Math.sign(dx); else player.y+=py*Math.sign(dy);
+        if(hitCooldown<=0 && !gameOver){
+          if(shield>0){ shield=0; for(let k=0;k<8;k++) spawnParticle(player.x,player.y,rnd(-160,160),rnd(-100,100),rnd(0.3,0.7),'#79d2ff'); }
+          else { hitCount++; hitCooldown=0.45; ui.hits.textContent=hitCount; ui.dmgFill.style.width=Math.min(hitCount/hitsAllowed,1)*100+'%'; for(let k=0;k<8;k++) spawnParticle(player.x,player.y,rnd(-150,150),rnd(-80,80),rnd(0.3,0.6),'#ef476f'); if(hitCount>=hitsAllowed){ addScore(levelIndex); resetStory(); levelIndex=0; startLevel(levelIndex); } }
+        }
+      }
+    }
+  } else if (p.shape === 'circle'){
+    // approx circle vs player's center
+    const dx = player.x - p.x, dy = player.y - p.y;
+    const dist2 = dx*dx + dy*dy;
+    const rad = p.r + Math.min(r.w, r.h)*0.5;
+    if (dist2 < rad*rad){
+      propHit = true;
+      
+      if(gunActive){
+        // GUN: Destroy the circular prop (trees, etc)!
+        for(let k=0;k<12;k++) spawnParticle(p.x, p.y, rnd(-160,160), rnd(-160,160), rnd(0.4,0.8), '#ef476f');
+        props.splice(idx, 1);
+        continue;
+      }
+      
+      const len = Math.sqrt(dist2) || 1;
+      player.x += (dx/len)*4;
+      player.y += (dy/len)*4;
+      if(hitCooldown<=0 && !gameOver){
+        if(shield>0){ shield=0; for(let k=0;k<8;k++) spawnParticle(player.x,player.y,rnd(-160,160),rnd(-100,100),rnd(0.3,0.7),'#79d2ff'); }
+        else { hitCount++; hitCooldown=0.45; ui.hits.textContent=hitCount; ui.dmgFill.style.width=Math.min(hitCount/hitsAllowed,1)*100+'%'; for(let k=0;k<8;k++) spawnParticle(player.x,player.y,rnd(-150,150),rnd(-80,80),rnd(0.3,0.6),'#ef476f'); if(hitCount>=hitsAllowed){ addScore(levelIndex); resetStory(); levelIndex=0; startLevel(levelIndex); } }
+      }
+    }
+  }
+}
+
+
+      // collisions with moving obstacles/pedestrians
+      for(let idx = moving.length - 1; idx >= 0; idx--){
+        const o = moving[idx];
+        const r=player.rect();
+        const ob={x:o.x-o.w/2,y:o.y-o.h/2,w:o.w,h:o.h};
+        if(overlap(r,ob)){
+          if(gunActive){
+            // GUN: Destroy the moving obstacle!
+            for(let k=0;k<15;k++) spawnParticle(o.x, o.y, rnd(-180,180), rnd(-180,180), rnd(0.4,0.9), '#ef476f');
+            moving.splice(idx, 1);
+            continue;
+          }
+          
+          const dx=(r.x+r.w/2)-(o.x), dy=(r.y+r.h/2)-(o.y);
+          const px=(r.w+o.w)/2 - Math.abs(dx), py=(r.h+o.h)/2 - Math.abs(dy);
+          if(px<py) player.x+=px*Math.sign(dx); else player.y+=py*Math.sign(dy);
+          if(hitCooldown<=0 && !gameOver){
+            if(shield>0){ shield=0; for(let k=0;k<8;k++) spawnParticle(player.x,player.y,rnd(-160,160),rnd(-100,100),rnd(0.3,0.7),'#79d2ff'); }
+            else { hitCount++; hitCooldown=0.45; ui.hits.textContent=hitCount; ui.dmgFill.style.width=Math.min(hitCount/hitsAllowed,1)*100+'%'; for(let k=0;k<8;k++) spawnParticle(player.x,player.y,rnd(-150,150),rnd(-80,80),rnd(0.3,0.6),'#ef476f'); if(hitCount>=hitsAllowed){ addScore(levelIndex); resetStory(); levelIndex=0; startLevel(levelIndex); } }
+          }
+        }
+      }
+
+      if(keys['KeyR']){ startLevel(levelIndex); keys['KeyR']=false; }
+
+      // draw
+      drawWorld();
+      drawActors();
+
+      // particles (green/red pops)
+      for(let i=particles.length-1;i>=0;i--){
+        const p=particles[i];
+        p.age+=dt; p.x+=p.vx*dt; p.y+=p.vy*dt; p.vx*=0.98; p.vy*=0.98;
+        const a=1-p.age/p.life; if(a<=0){ particles.splice(i,1); continue; }
+        ctx.globalAlpha=a; ctx.fillStyle=p.col; ctx.fillRect(p.x-2,p.y-2,4,4); ctx.globalAlpha=1;
+      }
+      
+      // Floating texts ("+9s", etc.)
+      for(let i=floatingTexts.length-1;i>=0;i--){
+        const ft=floatingTexts[i];
+        ft.age+=dt; 
+        ft.y -= 50*dt; // Float upward
+        const a=1-ft.age/ft.life; 
+        if(a<=0){ floatingTexts.splice(i,1); continue; }
+        
+        ctx.save();
+        ctx.globalAlpha=a;
+        ctx.fillStyle=ft.col;
+        ctx.strokeStyle='#000';
+        ctx.lineWidth=3;
+        ctx.font='bold 24px Arial';
+        ctx.textAlign='center';
+        ctx.textBaseline='middle';
+        ctx.strokeText(ft.text, ft.x, ft.y);
+        ctx.fillText(ft.text, ft.x, ft.y);
+        ctx.restore();
+      }
+
+      // weather overlay last
+      drawWeather(dt);
+
+      // NIGHT MODE: Simple subtle darkening effect
+      if(nightMode && player){
+        // Set global flag for headlight beams
+        window.nightModeActive = true;
+        
+        ctx.save();
+        
+        // Just a light dark overlay - simple and subtle
+        ctx.fillStyle = 'rgba(10, 15, 25, 0.35)';
+        ctx.fillRect(0, 0, W, H);
+        
+        // Small spotlight around player for slight visibility boost
+        const spotlightGrad = ctx.createRadialGradient(player.x, player.y, 0, player.x, player.y, 300);
+        spotlightGrad.addColorStop(0, 'rgba(10,15,25,0)');
+        spotlightGrad.addColorStop(0.7, 'rgba(10,15,25,0.05)');
+        spotlightGrad.addColorStop(1, 'rgba(10,15,25,0.35)');
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.fillStyle = spotlightGrad;
+        ctx.fillRect(0, 0, W, H);
+        ctx.globalCompositeOperation = 'source-over';
+        
+        ctx.restore();
+      } else {
+        window.nightModeActive = false;
+      }
+
+      // HUD strip
+      ctx.fillStyle='rgba(0,0,0,.28)'; ctx.fillRect(0,0,W,24);
+      ctx.fillStyle='#e7e7e7'; ctx.font='14px ui-monospace,Menlo,monospace';
+      const {prog,need}=evaluateRule(currentRule,true);
+      ctx.fillText(`TIME ${Math.ceil(timeLeft)}s  RULE ${prog}/${need}  HITS ${hitCount}/${hitsAllowed}  SHIELD ${shield?'ON':'OFF'}  WEATHER ${currentWeather.name}`,10,17);
+      ui.time.textContent=Math.ceil(timeLeft);
+    }catch(e){ showErr('Loop error: '+e.message); }
+    requestAnimationFrame(loop);
+  }
+
+  // ----- Boot
+  renderScores();
+  renderAchievements(); // Initialize achievements display
+  updateStoryDisplay(); // Initialize story display
+  updateEndingsProgress(); // Initialize progress bars
+  updateCoinDisplay(); // Initialize coin display
+  ui.bestLevel.textContent = bestLevel; // Show best level
+  
+  // initial draw
+  ctx.fillStyle='#10141b'; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#e7e7e7'; ctx.font='16px ui-monospace, Menlo, monospace'; ctx.fillText('Click "Start Your Journey" to begin!',W/2-150,H/2);
+  
+  // Export game init function
+  window.gameInit = function() {
+    const pal=palettes.cars; // avoid unused warning
+    startLevel(0); 
+    requestAnimationFrame(loop);
+  };
+})();
+</script>
+</body>
+</html>
