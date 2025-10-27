@@ -2392,7 +2392,12 @@ class AngryVehicle {
   // ----- Particles
   const particles=[];
   const floatingTexts=[]; // For "+9s" and other floating text messages
-  function spawnParticle(x,y,vx,vy,life,col){ particles.push({x,y,vx,vy,life,age:0,col}); }
+  function spawnParticle(x,y,vx,vy,life,col){
+  // hard cap to prevent freezes on heavy effects
+  if (particles.length > 1200) return;
+  particles.push({x,y,vx,vy,life,age:0,col});
+}
+
   function spawnFloatingText(x,y,text,col='#9be676'){ floatingTexts.push({x,y,text,col,age:0,life:1.2}); }
 
   // ----- Input (SPACE = handbrake + one-shot park)
@@ -5009,32 +5014,35 @@ for (let idx = moving.length - 1; idx >= 0; idx--) {
       }
     }
 
-    // (D) Cartoon "BOOM!" explosion
-spawnFloatingText(o.x, o.y, '💥 BOOM!', '#ffd166'); // big yellow text
-console.log('BOOM!');
+// (D) Cartoon "BOOM!" explosion — one-shot guard
+if (!o._dead) {
+  spawnFloatingText(o.x, o.y, '💥 BOOM!', '#ffd166');
+  console.log('BOOM!');
 
-// colorful blast particles
-for (let k = 0; k < 25; k++) {
-  const color = ['#ff595e', '#ffca3a', '#8ac926', '#1982c4'][Math.floor(rnd(0,4))];
-  spawnParticle(o.x, o.y, rnd(-250, 250), rnd(-250, 250), rnd(0.5, 1.0), color);
+  // colorful blast
+  for (let k = 0; k < 25; k++) {
+    const color = ['#ff595e', '#ffca3a', '#8ac926', '#1982c4'][Math.floor(rnd(0,4))];
+    spawnParticle(o.x, o.y, rnd(-250, 250), rnd(-250, 250), rnd(0.5, 1.0), color);
+  }
+  // smoke puffs
+  for (let k = 0; k < 15; k++) {
+    spawnParticle(o.x, o.y, rnd(-120, 120), rnd(-120, 120), rnd(0.9, 1.4), '#e0e0e0');
+    spawnParticle(o.x, o.y, rnd(-80, 80), rnd(-80, 80), rnd(0.7, 1.1), '#ffffff');
+  }
+  // shockwave
+  for (let k = 0; k < 10; k++) {
+    spawnParticle(o.x, o.y, rnd(-60, 60), rnd(-60, 60), rnd(0.7, 0.9), '#ffd166');
+  }
+
+  o._dead = true; // mark once; prevents repeated explosions
 }
-
-// cartoon smoke puffs (light gray and white)
-for (let k = 0; k < 15; k++) {
-  spawnParticle(o.x, o.y, rnd(-120, 120), rnd(-120, 120), rnd(1.0, 1.6), '#e0e0e0');
-  spawnParticle(o.x, o.y, rnd(-80, 80), rnd(-80, 80), rnd(0.8, 1.2), '#ffffff');
-}
-
-// optional shockwave ring effect
-for (let k = 0; k < 10; k++) {
-  spawnParticle(o.x, o.y, rnd(-60, 60), rnd(-60, 60), rnd(0.8, 1.0), '#ffd166');
-}
-
-o._dead = true; // mark for deletion
 continue;
+
 
   }
 }
+// remove marked obstacles
+if (moving.length) moving = moving.filter(m => !m._dead);
 
 if (moving.length && moving.some(m => m._dead)) moving = moving.filter(m => !m._dead);
 
