@@ -1343,9 +1343,9 @@ function boxesOverlapSpot(bx){ return spots.some(s => rectIntersect(bx, {x:s.x,y
 
 
     // static obstacles (boxes / buoys) - increases with level (SLOWER GROWTH)
-    const obstacleChance = Math.min(0.85, 0.3 + idx * 0.008); // Starts 30%, reaches 85% at level 70
+    const obstacleChance = Math.min(0.75, 0.3 + idx * 0.005); // Starts 30%, reaches 85% at level 70
     if(Math.random() < obstacleChance){
-      const baseObstacles = Math.floor(idx * 0.25) + 2; // Level 5: 3, Level 20: 7, Level 100: 27
+      const baseObstacles = Math.floor(idx * 0.25) + 1; // Level 5: 3, Level 20: 7, Level 100: 27
       const tries = Math.min(30, baseObstacles + rndi(0, 2));
       for(let i=0;i<tries;i++){
         const w=16+Math.random()*8, h=16+Math.random()*8, x=lot.x+30+Math.random()*(lot.w-60), y=lot.y+30+Math.random()*(lot.h-60);
@@ -1408,7 +1408,7 @@ if (idx >= 4 && idx < 50) { // idx 4 == Level 5
       // After level 22, shooting obstacles can appear based on combo chance
       const comboChance = idx >= 42 ? 0.80 : 0.45;
       if(Math.random() < comboChance) {
-        shootingMovers = rndi(2, 4); // 2-4 shooters if combo active
+        shootingMovers = rndi(2, 3); // 2-4 shooters if combo active
       }
     }
     
@@ -1426,7 +1426,7 @@ if (idx >= 4 && idx < 50) { // idx 4 == Level 5
       // Player starts at approximately x=80, y=H/2 (middle-left)
       const PLAYER_START_X = 80;
       const PLAYER_START_Y = H/2;
-      const SAFE_ZONE = 120; // Don't spawn obstacles within 120px of player start
+      const SAFE_ZONE = 320; // Don't spawn obstacles within 120px of player start
       
       // Choose a random side that is NOT the gate side
       const sides = ['left', 'right', 'top', 'bottom'].filter(s => s !== gateSide);
