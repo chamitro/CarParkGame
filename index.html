@@ -1343,9 +1343,9 @@ function boxesOverlapSpot(bx){ return spots.some(s => rectIntersect(bx, {x:s.x,y
 
 
     // static obstacles (boxes / buoys) - increases with level (SLOWER GROWTH)
-    const obstacleChance = Math.min(0.75, 0.3 + idx * 0.008); // Starts 30%, reaches 85% at level 70
+    const obstacleChance = Math.min(0.85, 0.3 + idx * 0.008); // Starts 30%, reaches 85% at level 70
     if(Math.random() < obstacleChance){
-      const baseObstacles = Math.floor(idx * 0.25) + 1; // Level 5: 3, Level 20: 7, Level 100: 27
+      const baseObstacles = Math.floor(idx * 0.25) + 2; // Level 5: 3, Level 20: 7, Level 100: 27
       const tries = Math.min(30, baseObstacles + rndi(0, 2));
       for(let i=0;i<tries;i++){
         const w=16+Math.random()*8, h=16+Math.random()*8, x=lot.x+30+Math.random()*(lot.w-60), y=lot.y+30+Math.random()*(lot.h-60);
@@ -3876,7 +3876,7 @@ for(let k=0;k<6;k++)
     
     // Spawn PATROL ANGRY CARS - START FROM LEVEL 1 (for testing)
     let angryCarsToSpawn = 0;
-    if(idx >= 20 && idx < 32) {
+    if(idx >= 16 && idx < 32) {
       // Level 1=2 angry cars (easy to see)
       angryCarsToSpawn = 2;
     } else if(idx >= 32) {
@@ -4763,7 +4763,7 @@ ctx.restore();
             
             // Shoot if player is close enough
             if(dist < 300) {
-              const speed = 50;
+              const speed = 45;
               bullets.push({
                 x: o.x,
                 y: o.y,
@@ -4834,7 +4834,7 @@ ctx.restore();
           // Player starts at approximately x=80, y=H/2
           const PLAYER_START_X = 80;
           const PLAYER_START_Y = H/2;
-          const SAFE_ZONE = 150;
+          const SAFE_ZONE = 200;
           
           if(Math.random()>.5){ 
             // Horizontal spawn
@@ -4874,6 +4874,7 @@ ctx.restore();
           }
         }
       }
+      
 
       // collisions with boxes
       for(let idx = boxes.length - 1; idx >= 0; idx--){
@@ -4960,27 +4961,84 @@ for (let idx = props.length - 1; idx >= 0; idx--){
 
 
       // collisions with moving obstacles/pedestrians
-      for(let idx = moving.length - 1; idx >= 0; idx--){
-        const o = moving[idx];
-        const r=player.rect();
-        const ob={x:o.x-o.w/2,y:o.y-o.h/2,w:o.w,h:o.h};
-        if(overlap(r,ob)){
-          if(gunActive){
-            // GUN: Destroy the moving obstacle!
-            for(let k=0;k<15;k++) spawnParticle(o.x, o.y, rnd(-180,180), rnd(-180,180), rnd(0.4,0.9), '#ef476f');
-            moving.splice(idx, 1);
-            continue;
-          }
-          
-          const dx=(r.x+r.w/2)-(o.x), dy=(r.y+r.h/2)-(o.y);
-          const px=(r.w+o.w)/2 - Math.abs(dx), py=(r.h+o.h)/2 - Math.abs(dy);
-          if(px<py) player.x+=px*Math.sign(dx); else player.y+=py*Math.sign(dy);
-          if(hitCooldown<=0 && !gameOver){
-            if(shield>0){ shield=0; for(let k=0;k<8;k++) spawnParticle(player.x,player.y,rnd(-160,160),rnd(-100,100),rnd(0.3,0.7),'#79d2ff'); }
-            else { hitCount++; hitCooldown=0.45; ui.hits.textContent=hitCount; ui.dmgFill.style.width=Math.min(hitCount/hitsAllowed,1)*100+'%'; for(let k=0;k<8;k++) spawnParticle(player.x,player.y,rnd(-150,150),rnd(-80,80),rnd(0.3,0.6),'#ef476f'); if(hitCount>=hitsAllowed){ addScore(levelIndex); resetStory(); levelIndex=0; startLevel(levelIndex); } }
-          }
+for (let idx = moving.length - 1; idx >= 0; idx--) {
+  const o = moving[idx];
+  const r = player.rect();
+  const ob = { x: o.x - o.w / 2, y: o.y - o.h / 2, w: o.w, h: o.h };
+
+  if (overlap(r, ob)) {
+    // (A) GUN branch: mark for removal instead of splicing now
+    if (gunActive) {
+      for (let k = 0; k < 15; k++) {
+        spawnParticle(o.x, o.y, rnd(-180, 180), rnd(-180, 180), rnd(0.4, 0.9), '#ef476f');
+      }
+      spawnFloatingText(o.x, o.y, 'BOOM!', '#ffffff');
+      console.log('BOOM!');
+      o._dead = true;          // <— defer deletion
+      continue;
+    }
+
+    // (B) Resolve minimal push so the player doesn't get stuck
+    const dx = (r.x + r.w / 2) - o.x;
+    const dy = (r.y + r.h / 2) - o.y;
+    const px = (r.w + o.w) / 2 - Math.abs(dx);
+    const py = (r.h + o.h) / 2 - Math.abs(dy);
+    if (px < py) player.x += px * Math.sign(dx); else player.y += py * Math.sign(dy);
+
+    // (C) Apply hit/damage like before
+    if (hitCooldown <= 0 && !gameOver) {
+      if (shield > 0) {
+        shield = 0;
+        for (let k = 0; k < 8; k++) {
+          spawnParticle(player.x, player.y, rnd(-160, 160), rnd(-100, 100), rnd(0.3, 0.7), '#79d2ff');
+        }
+      } else {
+        hitCount++;
+        hitCooldown = 0.45;
+        ui.hits.textContent = hitCount;
+        ui.dmgFill.style.width = Math.min(hitCount / hitsAllowed, 1) * 100 + '%';
+        for (let k = 0; k < 8; k++) {
+          spawnParticle(player.x, player.y, rnd(-150, 150), rnd(-80, 80), rnd(0.3, 0.6), '#ef476f');
+        }
+        if (hitCount >= hitsAllowed) {
+          addScore(levelIndex);
+          resetStory();
+          levelIndex = 0;
+          startLevel(levelIndex);
         }
       }
+    }
+
+    // (D) Cartoon "BOOM!" explosion
+spawnFloatingText(o.x, o.y, '💥 BOOM!', '#ffd166'); // big yellow text
+console.log('BOOM!');
+
+// colorful blast particles
+for (let k = 0; k < 25; k++) {
+  const color = ['#ff595e', '#ffca3a', '#8ac926', '#1982c4'][Math.floor(rnd(0,4))];
+  spawnParticle(o.x, o.y, rnd(-250, 250), rnd(-250, 250), rnd(0.5, 1.0), color);
+}
+
+// cartoon smoke puffs (light gray and white)
+for (let k = 0; k < 15; k++) {
+  spawnParticle(o.x, o.y, rnd(-120, 120), rnd(-120, 120), rnd(1.0, 1.6), '#e0e0e0');
+  spawnParticle(o.x, o.y, rnd(-80, 80), rnd(-80, 80), rnd(0.8, 1.2), '#ffffff');
+}
+
+// optional shockwave ring effect
+for (let k = 0; k < 10; k++) {
+  spawnParticle(o.x, o.y, rnd(-60, 60), rnd(-60, 60), rnd(0.8, 1.0), '#ffd166');
+}
+
+o._dead = true; // mark for deletion
+continue;
+
+  }
+}
+
+if (moving.length && moving.some(m => m._dead)) moving = moving.filter(m => !m._dead);
+
+      
 
       if(keys['KeyR']){ startLevel(levelIndex); keys['KeyR']=false; }
 
