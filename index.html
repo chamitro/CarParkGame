@@ -1346,7 +1346,7 @@ function boxesOverlapSpot(bx){ return spots.some(s => rectIntersect(bx, {x:s.x,y
     const obstacleChance = Math.min(0.75, 0.3 + idx * 0.008); // Starts 30%, reaches 85% at level 70
     if(Math.random() < obstacleChance){
       const baseObstacles = Math.floor(idx * 0.25) + 1; // Level 5: 3, Level 20: 7, Level 100: 27
-      const tries = Math.min(30, baseObstacles + rndi(0, 2));
+      const tries = Math.min(40, baseObstacles + rndi(0, 2));
       for(let i=0;i<tries;i++){
         const w=16+Math.random()*8, h=16+Math.random()*8, x=lot.x+30+Math.random()*(lot.w-60), y=lot.y+30+Math.random()*(lot.h-60);
         const cand = { x: x - w/2, y: y - h/2, w, h };
@@ -1396,8 +1396,8 @@ if (idx >= 4 && idx < 50) { // idx 4 == Level 5
     const gateSide = ['left','right','top','bottom'][rndi(0,3)];
     
     // MOVING OBSTACLES - scale for 50 levels (always present)
-    const baseMovers = 2 + Math.floor(idx * 0.2); // Level 5: 3, Level 25: 7, Level 50: 12
-    const normalMovers = Math.min(15, baseMovers + rndi(0, 2));
+    const baseMovers = 2 + Math.floor(idx * 0.1); // Level 5: 3, Level 25: 7, Level 50: 12
+    const normalMovers = Math.min(10, baseMovers + rndi(0, 2));
     
     // SHOOTING OBSTACLES - START FROM LEVEL 1 (for testing)
     let shootingMovers = 0;
@@ -1408,7 +1408,7 @@ if (idx >= 4 && idx < 50) { // idx 4 == Level 5
       // After level 22, shooting obstacles can appear based on combo chance
       const comboChance = idx >= 42 ? 0.80 : 0.45;
       if(Math.random() < comboChance) {
-        shootingMovers = rndi(2, 4); // 2-4 shooters if combo active
+        shootingMovers = rndi(2, 3); // 2-4 shooters if combo active
       }
     }
     
@@ -2139,8 +2139,8 @@ class AngryVehicle {
     
     // Shoot a fireball towards a random spot in the lot
     shootFireball() {
-      // Shoot 2 fireballs at different random targets
-      for(let i = 0; i < 2; i++) {
+      // Shoot 4 fireballs at different random targets
+      for(let i = 0; i < 4; i++) {
         const targetX = this.lotBounds.x + rnd(60, this.lotBounds.w - 60);
         const targetY = this.lotBounds.y + rnd(60, this.lotBounds.h - 60);
         
