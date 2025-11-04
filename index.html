@@ -531,7 +531,7 @@
 </div>
 
 <!-- VERSION NUMBER -->
-<div id="versionNumber">v1.0.2</div>
+<div id="versionNumber">v1.0.0</div>
 
 <div class="wrap">
   <div class="game-container">
@@ -4785,8 +4785,79 @@ ctx.restore();
     
     // cars
     for(const c of cars){
+      // Draw shield effect BEFORE drawing car (so it appears behind)
+      if(c === player && shield > 0){
+        ctx.save();
+        
+        // Pulsing shield bubble
+        const pulse = Math.sin(Date.now() / 150) * 0.15 + 0.85;
+        const rotation = Date.now() / 800;
+        
+        // Outer glow
+        ctx.globalAlpha = 0.3;
+        const outerGlow = ctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, 65);
+        outerGlow.addColorStop(0, 'rgba(121, 210, 255, 0.4)');
+        outerGlow.addColorStop(1, 'rgba(121, 210, 255, 0)');
+        ctx.fillStyle = outerGlow;
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, 65, 0, PI2);
+        ctx.fill();
+        
+        // Main shield bubble
+        ctx.globalAlpha = 0.4 * pulse;
+        ctx.strokeStyle = '#79d2ff';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, 50, 0, PI2);
+        ctx.stroke();
+        
+        // Inner shine ring
+        ctx.globalAlpha = 0.6 * pulse;
+        ctx.strokeStyle = '#b3e5ff';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, 45, 0, PI2);
+        ctx.stroke();
+        
+        // Rotating energy particles around shield
+        ctx.globalAlpha = 0.8;
+        for(let i = 0; i < 6; i++) {
+          const angle = rotation + (i * Math.PI / 3);
+          const px = c.x + Math.cos(angle) * 48;
+          const py = c.y + Math.sin(angle) * 48;
+          
+          ctx.fillStyle = '#79d2ff';
+          ctx.shadowBlur = 8;
+          ctx.shadowColor = '#79d2ff';
+          ctx.beginPath();
+          ctx.arc(px, py, 4, 0, PI2);
+          ctx.fill();
+          ctx.shadowBlur = 0;
+        }
+        
+        // Hexagonal shield pattern
+        ctx.globalAlpha = 0.2 * pulse;
+        ctx.strokeStyle = '#79d2ff';
+        ctx.lineWidth = 1.5;
+        for(let ring = 0; ring < 3; ring++) {
+          const radius = 25 + ring * 10;
+          ctx.beginPath();
+          for(let i = 0; i <= 6; i++) {
+            const angle = (i * Math.PI / 3) + rotation * 0.5;
+            const px = c.x + Math.cos(angle) * radius;
+            const py = c.y + Math.sin(angle) * radius;
+            if(i === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+          }
+          ctx.stroke();
+        }
+        
+        ctx.restore();
+      }
+      
       c.draw();
-      // Power-up effect on player
+      
+      // Power-up effect on player (drawn AFTER car, on top)
       if(c === player && purchasedPowerup && powerupActive){
         ctx.save();
         
