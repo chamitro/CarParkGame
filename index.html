@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Pixel Parking — Ultimate Edition</title>
 <style>
   html,body{height:100%;margin:0;background:#0b0e13;color:#e7e7e7;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;overflow:auto}
@@ -390,6 +393,118 @@
   #versionNumber:hover {
     color: rgba(207, 211, 218, 0.8);
   }
+  
+  /* MOBILE TOUCH CONTROLS */
+  #mobileControls {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 200px;
+    display: none;
+    z-index: 999;
+    pointer-events: none;
+  }
+  
+  @media (max-width: 768px), (pointer: coarse) {
+    #mobileControls {
+      display: block;
+    }
+    .hud {
+      display: none;
+    }
+    .wrap {
+      flex-direction: column;
+      padding: 0;
+    }
+    canvas {
+      border-radius: 0;
+      border: none;
+      box-shadow: none;
+    }
+  }
+  
+  .mobile-btn {
+    position: absolute;
+    background: rgba(106, 90, 205, 0.7);
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    color: #fff;
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+    font-weight: bold;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  }
+  
+  .mobile-btn:active {
+    background: rgba(106, 90, 205, 0.9);
+    transform: scale(0.95);
+  }
+  
+  .dpad-container {
+    position: absolute;
+    left: 20px;
+    bottom: 20px;
+    width: 150px;
+    height: 150px;
+  }
+  
+  .dpad-up { width: 50px; height: 50px; top: 0; left: 50px; }
+  .dpad-down { width: 50px; height: 50px; bottom: 0; left: 50px; }
+  .dpad-left { width: 50px; height: 50px; top: 50px; left: 0; }
+  .dpad-right { width: 50px; height: 50px; top: 50px; right: 0; }
+  
+  .action-buttons {
+    position: absolute;
+    right: 20px;
+    bottom: 20px;
+    width: 180px;
+    height: 150px;
+  }
+  
+  .btn-park { width: 70px; height: 70px; bottom: 40px; right: 0; }
+  .btn-powerup { width: 60px; height: 60px; top: 0; right: 30px; font-size: 20px; }
+  .btn-restart { width: 50px; height: 50px; top: 0; left: 0; font-size: 18px; }
+  
+  /* Mobile HUD */
+  #mobileHUD {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 8px;
+    display: none;
+    z-index: 998;
+    color: #fff;
+    font-size: 12px;
+  }
+  
+  @media (max-width: 768px), (pointer: coarse) {
+    #mobileHUD {
+      display: block;
+    }
+  }
+  
+  .mobile-hud-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+  }
+  
+  .mobile-stat {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+  }
 </style>
 </head>
 <body>
@@ -532,6 +647,37 @@
 
 <!-- VERSION NUMBER -->
 <div id="versionNumber">v1.0.0</div>
+
+<!-- MOBILE HUD -->
+<div id="mobileHUD">
+  <div class="mobile-hud-row">
+    <span class="mobile-stat">🎯 Level <span id="mobileLevelNum">1</span>/50</span>
+    <span class="mobile-stat">⏱️ <span id="mobileTime">0</span>s</span>
+    <span class="mobile-stat">💥 <span id="mobileHits">0</span>/<span id="mobileHitsMax">6</span></span>
+  </div>
+  <div class="mobile-hud-row">
+    <span class="mobile-stat" id="mobileRule">Park vehicles</span>
+    <span class="mobile-stat">🪙 <span id="mobileCoins">0</span></span>
+  </div>
+</div>
+
+<!-- MOBILE TOUCH CONTROLS -->
+<div id="mobileControls">
+  <!-- D-Pad -->
+  <div class="dpad-container">
+    <div class="mobile-btn dpad-up" id="btnUp">▲</div>
+    <div class="mobile-btn dpad-down" id="btnDown">▼</div>
+    <div class="mobile-btn dpad-left" id="btnLeft">◄</div>
+    <div class="mobile-btn dpad-right" id="btnRight">►</div>
+  </div>
+  
+  <!-- Action Buttons -->
+  <div class="action-buttons">
+    <div class="mobile-btn btn-park" id="btnPark">🅿️</div>
+    <div class="mobile-btn btn-powerup" id="btnPowerup">⚡</div>
+    <div class="mobile-btn btn-restart" id="btnRestart">R</div>
+  </div>
+</div>
 
 <div class="wrap">
   <div class="game-container">
@@ -2410,6 +2556,122 @@ class AngryVehicle {
       }
 		});
   window.addEventListener('keyup',e=>{ keys[e.code]=false; if(e.code==='Space') handbrake=false; });
+  
+  // ----- MOBILE TOUCH CONTROLS
+  function setupMobileControls() {
+    const isMobile = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+    if(!isMobile) return;
+    
+    const mobileUI = {
+      levelNum: document.getElementById('mobileLevelNum'),
+      time: document.getElementById('mobileTime'),
+      hits: document.getElementById('mobileHits'),
+      hitsMax: document.getElementById('mobileHitsMax'),
+      rule: document.getElementById('mobileRule'),
+      coins: document.getElementById('mobileCoins')
+    };
+    
+    // Update mobile HUD
+    window.updateMobileHUD = function() {
+      if(mobileUI.levelNum) mobileUI.levelNum.textContent = levelIndex + 1;
+      if(mobileUI.time) mobileUI.time.textContent = Math.ceil(timeLeft);
+      if(mobileUI.hits) mobileUI.hits.textContent = hitCount;
+      if(mobileUI.hitsMax) mobileUI.hitsMax.textContent = hitsAllowed;
+      if(mobileUI.rule) {
+        const {prog, need} = evaluateRule(currentRule, true);
+        mobileUI.rule.textContent = `${currentRule.type === 'red' ? '🔴' : '🎯'} ${prog}/${need}`;
+      }
+      if(mobileUI.coins) mobileUI.coins.textContent = spendableCoins;
+    };
+    
+    // D-Pad controls
+    const btnUp = document.getElementById('btnUp');
+    const btnDown = document.getElementById('btnDown');
+    const btnLeft = document.getElementById('btnLeft');
+    const btnRight = document.getElementById('btnRight');
+    const btnPark = document.getElementById('btnPark');
+    const btnPowerup = document.getElementById('btnPowerup');
+    const btnRestart = document.getElementById('btnRestart');
+    
+    function handleTouch(btn, keyCode, isDown) {
+      if(isDown) {
+        keys[keyCode] = true;
+        if(btn) btn.style.background = 'rgba(106, 90, 205, 0.9)';
+      } else {
+        keys[keyCode] = false;
+        if(btn) btn.style.background = 'rgba(106, 90, 205, 0.7)';
+      }
+    }
+    
+    // Up button
+    if(btnUp) {
+      btnUp.addEventListener('touchstart', (e) => { e.preventDefault(); handleTouch(btnUp, 'ArrowUp', true); });
+      btnUp.addEventListener('touchend', (e) => { e.preventDefault(); handleTouch(btnUp, 'ArrowUp', false); });
+      btnUp.addEventListener('touchcancel', (e) => { e.preventDefault(); handleTouch(btnUp, 'ArrowUp', false); });
+    }
+    
+    // Down button
+    if(btnDown) {
+      btnDown.addEventListener('touchstart', (e) => { e.preventDefault(); handleTouch(btnDown, 'ArrowDown', true); });
+      btnDown.addEventListener('touchend', (e) => { e.preventDefault(); handleTouch(btnDown, 'ArrowDown', false); });
+      btnDown.addEventListener('touchcancel', (e) => { e.preventDefault(); handleTouch(btnDown, 'ArrowDown', false); });
+    }
+    
+    // Left button
+    if(btnLeft) {
+      btnLeft.addEventListener('touchstart', (e) => { e.preventDefault(); handleTouch(btnLeft, 'ArrowLeft', true); });
+      btnLeft.addEventListener('touchend', (e) => { e.preventDefault(); handleTouch(btnLeft, 'ArrowLeft', false); });
+      btnLeft.addEventListener('touchcancel', (e) => { e.preventDefault(); handleTouch(btnLeft, 'ArrowLeft', false); });
+    }
+    
+    // Right button
+    if(btnRight) {
+      btnRight.addEventListener('touchstart', (e) => { e.preventDefault(); handleTouch(btnRight, 'ArrowRight', true); });
+      btnRight.addEventListener('touchend', (e) => { e.preventDefault(); handleTouch(btnRight, 'ArrowRight', false); });
+      btnRight.addEventListener('touchcancel', (e) => { e.preventDefault(); handleTouch(btnRight, 'ArrowRight', false); });
+    }
+    
+    // Park button
+    if(btnPark) {
+      btnPark.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        handbrake = true;
+        if(player) {
+          player.speed = 0;
+          tryPark(player);
+        }
+        btnPark.style.background = 'rgba(106, 90, 205, 0.9)';
+      });
+      btnPark.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        handbrake = false;
+        btnPark.style.background = 'rgba(106, 90, 205, 0.7)';
+      });
+    }
+    
+    // Powerup button
+    if(btnPowerup) {
+      btnPowerup.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        activatePowerup();
+        btnPowerup.style.background = 'rgba(106, 90, 205, 0.9)';
+        setTimeout(() => { btnPowerup.style.background = 'rgba(106, 90, 205, 0.7)'; }, 200);
+      });
+    }
+    
+    // Restart button
+    if(btnRestart) {
+      btnRestart.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        startLevel(levelIndex);
+        btnRestart.style.background = 'rgba(106, 90, 205, 0.9)';
+        setTimeout(() => { btnRestart.style.background = 'rgba(106, 90, 205, 0.7)'; }, 200);
+      });
+    }
+  }
+  
+  // Initialize mobile controls
+  setupMobileControls();
 
   // ----- Game state
   let cars=[], player, angryCars=[], bullets=[], timeLeft=90, gameOver=false, hitCount=0, hitCooldown=0, hitsAllowed=2, ruleProg=0, ruleNeed=0, currentRule={type:'basic',n:5}, physics={accel:1,steer:1,drag:2,max:1}, maxSpeed=200, shield=0;
@@ -5515,6 +5777,9 @@ for (let idx = props.length - 1; idx >= 0; idx--){
       const {prog,need}=evaluateRule(currentRule,true);
       ctx.fillText(`TIME ${Math.ceil(timeLeft)}s  RULE ${prog}/${need}  HITS ${hitCount}/${hitsAllowed}  SHIELD ${shield?'ON':'OFF'}  WEATHER ${currentWeather.name}`,10,17);
       ui.time.textContent=Math.ceil(timeLeft);
+      
+      // Update mobile HUD
+      if(window.updateMobileHUD) window.updateMobileHUD();
     }catch(e){ showErr('Loop error: '+e.message); }
     requestAnimationFrame(loop);
   }
