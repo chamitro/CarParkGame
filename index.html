@@ -482,7 +482,7 @@
             <span>The Perfectionist's Tale</span>
           </div>
           <div class="ending-requirement">
-            <strong>Requirement:</strong> Complete all 50 levels with 0 or 1 hit per level (maximum)
+            <strong>Requirement:</strong> Complete all 50 levels with 0-2 hits per level (maximum)
           </div>
           <div class="ending-reward">
             ✨ Reward: Unlock the complete story! Discover the hidden narrative that unfolds with each perfect run.
@@ -531,7 +531,7 @@
 </div>
 
 <!-- VERSION NUMBER -->
-<div id="versionNumber">v1.0.0</div>
+<div id="versionNumber">v1.0.2</div>
 
 <div class="wrap">
   <div class="game-container">
@@ -776,7 +776,7 @@ ctx.imageSmoothingEnabled = true;
   
   function getWordForLevel(levelIndex, hits) {
     // Return the word from MASTER_STORY, and track if it should be unlocked
-    const isUnlocked = (hits <= 1); // Unlock if 0 or 1 hits
+    const isUnlocked = (hits <= 2); // Unlock if 0, 1, or 2 hits
     
     if(isUnlocked) {
       perfectLevelWords[levelIndex] = true; // Mark this level as perfect
@@ -952,7 +952,7 @@ ctx.imageSmoothingEnabled = true;
           <p style="margin:0 0 8px;font-size:13px;color:#cfd3da">Story Word ${level + 1}/50:</p>
           <p style="margin:0;font-size:42px;font-weight:bold;color:${qualityColor};text-transform:uppercase">${wordData.unlocked ? wordData.word : '_____'}</p>
           <p style="margin:12px 0 0;font-size:16px;color:${qualityColor}">${qualityText}</p>
-          ${!wordData.unlocked ? `<p style="margin:8px 0 0;font-size:11px;color:#999;font-style:italic">(Complete with 0-1 hits to unlock)</p>` : ''}
+          ${!wordData.unlocked ? `<p style="margin:8px 0 0;font-size:11px;color:#999;font-style:italic">(Complete with 0-2 hits to unlock)</p>` : ''}
         </div>
         
         <div style="margin:20px 0;padding:16px;background:#0e121a;border-radius:8px;border:1px solid #334">
@@ -1346,7 +1346,7 @@ function boxesOverlapSpot(bx){ return spots.some(s => rectIntersect(bx, {x:s.x,y
     const obstacleChance = Math.min(0.75, 0.3 + idx * 0.008); // Starts 30%, reaches 85% at level 70
     if(Math.random() < obstacleChance){
       const baseObstacles = Math.floor(idx * 0.25) + 1; // Level 5: 3, Level 20: 7, Level 100: 27
-      const tries = Math.min(40, baseObstacles + rndi(0, 2));
+      const tries = Math.min(30, baseObstacles + rndi(0, 2));
       for(let i=0;i<tries;i++){
         const w=16+Math.random()*8, h=16+Math.random()*8, x=lot.x+30+Math.random()*(lot.w-60), y=lot.y+30+Math.random()*(lot.h-60);
         const cand = { x: x - w/2, y: y - h/2, w, h };
@@ -1396,8 +1396,8 @@ if (idx >= 4 && idx < 50) { // idx 4 == Level 5
     const gateSide = ['left','right','top','bottom'][rndi(0,3)];
     
     // MOVING OBSTACLES - scale for 50 levels (always present)
-    const baseMovers = 2 + Math.floor(idx * 0.1); // Level 5: 3, Level 25: 7, Level 50: 12
-    const normalMovers = Math.min(10, baseMovers + rndi(0, 2));
+    const baseMovers = 2 + Math.floor(idx * 0.2); // Level 5: 3, Level 25: 7, Level 50: 12
+    const normalMovers = Math.min(15, baseMovers + rndi(0, 2));
     
     // SHOOTING OBSTACLES - START FROM LEVEL 1 (for testing)
     let shootingMovers = 0;
@@ -1408,7 +1408,7 @@ if (idx >= 4 && idx < 50) { // idx 4 == Level 5
       // After level 22, shooting obstacles can appear based on combo chance
       const comboChance = idx >= 42 ? 0.80 : 0.45;
       if(Math.random() < comboChance) {
-        shootingMovers = rndi(2, 3); // 2-4 shooters if combo active
+        shootingMovers = rndi(2, 4); // 2-4 shooters if combo active
       }
     }
     
@@ -2139,8 +2139,8 @@ class AngryVehicle {
     
     // Shoot a fireball towards a random spot in the lot
     shootFireball() {
-      // Shoot 4 fireballs at different random targets
-      for(let i = 0; i < 4; i++) {
+      // Shoot 2 fireballs at different random targets
+      for(let i = 0; i < 2; i++) {
         const targetX = this.lotBounds.x + rnd(60, this.lotBounds.w - 60);
         const targetY = this.lotBounds.y + rnd(60, this.lotBounds.h - 60);
         
@@ -2774,8 +2774,8 @@ class AngryVehicle {
   }
   
   function genHitsAllowed(level){ 
-    // Always 4 hits: 0=legendary, 1=rare, 2=common, 3=no word, 4=death
-    return 5;
+    // Always 6 hits: 0-2=word unlock, 3-5=no word, 6=death
+    return 6;
   }
 
   // ----- Helpers
@@ -2904,13 +2904,13 @@ if (currentRule.type === 'red' && (!s || !s.red)) {
 timeLeft += 5;
 ui.time.textContent = Math.ceil(timeLeft);
 
-// +9 SECONDS TIME BONUS for parking!
+// +11 SECONDS TIME BONUS for parking!
 if(!gameOver) {
-  timeLeft += 9;
+  timeLeft += 11;
   ui.time.textContent = Math.ceil(timeLeft);
   
-  // Floating "+9s" text above the parked car
-  spawnFloatingText(car.x, car.y - 40, '+9s', '#9be676');
+  // Floating "+11s" text above the parked car
+  spawnFloatingText(car.x, car.y - 40, '+11s', '#9be676');
   
   // Visual feedback for time bonus (green particles shooting up)
   for(let k=0;k<8;k++) {
@@ -2966,14 +2966,18 @@ for(let k=0;k<6;k++)
         const coinPercentage = totalCoinsSpawned > 0 ? (totalCoins / totalCoinsSpawned) * 100 : 0;
         hasCollected70PercentCoins = coinPercentage >= 70;
         
-        // Check if ALL 3 endings achieved
-        dragonBonusUnlocked = hasCompletedAll50 && hasUnlockedFullStory && hasCollected70PercentCoins;
+        // Save current run's achievements
+        saveEndingsAchievement();
+        
+        // Check if ALL 3 endings achieved EVER (not just this run)
+        const savedEndings = loadSavedEndings();
+        dragonBonusUnlocked = savedEndings.ending1Ever && savedEndings.ending2Ever && savedEndings.ending3Ever;
         
         console.log('=== ENDINGS CHECK ===');
         console.log('Completed 50 levels:', hasCompletedAll50);
         console.log('Full story unlocked:', hasUnlockedFullStory);
         console.log(`Coins: ${totalCoins}/${totalCoinsSpawned} (${coinPercentage.toFixed(1)}%)`, hasCollected70PercentCoins);
-        console.log('DRAGON BONUS:', dragonBonusUnlocked);
+        console.log('DRAGON BONUS (ever):', dragonBonusUnlocked);
       }
       
       // next level - show shop FIRST, then start level OR show endings screen
@@ -3047,7 +3051,7 @@ for(let k=0;k<6;k++)
           
           <div style="padding:16px;background:${hasUnlockedFullStory ? '#1a2a1a' : '#1a1a1a'};border:2px solid ${hasUnlockedFullStory ? '#9be676' : '#334'};border-radius:8px;margin-bottom:12px">
             <p style="margin:0;font-size:18px">${hasUnlockedFullStory ? '✅' : '❌'} <strong>Ending 2:</strong> Unlock Full Story</p>
-            <p style="margin:4px 0 0;font-size:14px;color:#cfd3da">Complete all 50 levels with 0-1 hits each</p>
+            <p style="margin:4px 0 0;font-size:14px;color:#cfd3da">Complete all 50 levels with 0-2 hits each</p>
             <p style="margin:8px 0 0;font-size:16px;color:${hasUnlockedFullStory ? '#9be676' : '#ff6b6b'}">${unlockedWords}/50 words unlocked</p>
           </div>
           
@@ -3060,7 +3064,7 @@ for(let k=0;k<6;k++)
           <div style="margin-top:24px;padding:20px;background:#0e121a;border:2px solid #6a5acd;border-radius:12px">
             <h3 style="margin:0 0 12px;font-size:20px;color:#e7e7e7">📖 Your Story This Run:</h3>
             ${storyHTML}
-            ${unlockedWords < 50 ? `<p style="margin:12px 0 0;font-size:13px;color:#999;font-style:italic">Complete levels with 0-1 hits to unlock all words!</p>` : `<p style="margin:12px 0 0;font-size:16px;color:#ffd700;font-weight:bold">✨ COMPLETE STORY UNLOCKED! ✨</p>`}
+            ${unlockedWords < 50 ? `<p style="margin:12px 0 0;font-size:13px;color:#999;font-style:italic">Complete levels with 0-2 hits to unlock all words!</p>` : `<p style="margin:12px 0 0;font-size:16px;color:#ffd700;font-weight:bold">✨ COMPLETE STORY UNLOCKED! ✨</p>`}
           </div>
           
           ${dragonUnlocked ? `
@@ -3126,27 +3130,35 @@ for(let k=0;k<6;k++)
     canvas.width = 960;
     canvas.height = 540;
     
-    // SCROLLING SHOOTER - Dragon flies forward (left to right)
+    // SIDE-SCROLLING ARCADE SHOOTER - Dragon flies and shoots!
     let dragonX = 150;
     let dragonY = 270;
-    let dragonSpeed = 250; // Vertical movement speed
+    let dragonSpeed = 300; // Movement speed
     let dragonLives = 10;
     let dragonScore = 0;
     let fireballs = [];
     let enemyCars = [];
     let explosions = [];
     let particles = [];
+    let powerups = [];
+    let coins = [];
     let gameRunning = true;
-    let scrollSpeed = 200; // Background scroll speed
+    let scrollSpeed = 180;
     let backgroundOffset = 0;
     let spawnTimer = 0;
+    let coinTimer = 0;
+    let powerupTimer = 0;
     let difficultyTimer = 0;
-    let spawnRate = 1.5; // Spawn enemy every 1.5 seconds
+    let spawnRate = 1.8;
+    let invulnerable = false;
+    let invulnerableTimer = 0;
+    let combo = 0;
+    let comboTimer = 0;
     
     // Keys pressed
     const keys = {};
     let canShoot = true;
-    let shootCooldown = 0.15; // 150ms cooldown between shots
+    let shootCooldown = 0.12;
     let lastShootTime = 0;
     
     window.addEventListener('keydown', (e) => { 
@@ -3154,27 +3166,27 @@ for(let k=0;k<6;k++)
       
       // Space bar to shoot
       if((e.key === ' ' || e.key === 'Spacebar') && gameRunning && canShoot) {
-        e.preventDefault(); // Prevent page scroll
+        e.preventDefault();
         
         // Shoot fireball forward
         fireballs.push({
           x: dragonX + 60,
           y: dragonY,
-          vx: 600,
+          vx: 700,
           vy: 0,
-          size: 15
+          size: 18
         });
         
-        // Shoot particles
-        for(let i = 0; i < 3; i++) {
+        // Muzzle flash particles
+        for(let i = 0; i < 5; i++) {
           particles.push({
             x: dragonX + 60,
             y: dragonY,
-            vx: 500 + Math.random() * 100,
-            vy: (Math.random() - 0.5) * 100,
-            life: 0.3,
+            vx: 600 + Math.random() * 150,
+            vy: (Math.random() - 0.5) * 150,
+            life: 0.4,
             age: 0,
-            color: '#ff6600'
+            color: ['#ff6600', '#ffaa00', '#ffff00'][Math.floor(Math.random() * 3)]
           });
         }
         
@@ -3185,21 +3197,60 @@ for(let k=0;k<6;k++)
     
     window.addEventListener('keyup', (e) => { keys[e.key] = false; });
     
-    // Spawn enemy car
+    // Spawn enemy
     function spawnEnemy() {
-      const types = ['car', 'tank', 'turret'];
-      const type = types[Math.floor(Math.random() * types.length)];
+      const types = ['car', 'tank', 'turret', 'UFO'];
+      const weights = [50, 25, 15, 10]; // UFO is rare
+      let roll = Math.random() * 100;
+      let type = 'car';
+      let cumulative = 0;
+      
+      for(let i = 0; i < types.length; i++) {
+        cumulative += weights[i];
+        if(roll < cumulative) {
+          type = types[i];
+          break;
+        }
+      }
       
       enemyCars.push({
         x: 1000,
         y: 100 + Math.random() * 340,
-        vx: -150 - Math.random() * 100,
-        vy: (Math.random() - 0.5) * 30, // Slight vertical movement
+        vx: type === 'UFO' ? -80 - Math.random() * 40 : -180 - Math.random() * 120,
+        vy: type === 'UFO' ? (Math.random() - 0.5) * 80 : (Math.random() - 0.5) * 40,
         type: type,
         color: ['#f44336', '#2196f3', '#4caf50', '#ffc107', '#9c27b0'][Math.floor(Math.random() * 5)],
-        health: type === 'tank' ? 3 : type === 'turret' ? 2 : 1,
-        size: type === 'tank' ? 70 : type === 'turret' ? 50 : 40,
-        shootTimer: type === 'turret' ? 0.5 + Math.random() : type === 'tank' ? 1 + Math.random() : 999
+        health: type === 'tank' ? 4 : type === 'turret' ? 3 : type === 'UFO' ? 5 : 2,
+        maxHealth: type === 'tank' ? 4 : type === 'turret' ? 3 : type === 'UFO' ? 5 : 2,
+        size: type === 'UFO' ? 60 : type === 'tank' ? 70 : type === 'turret' ? 50 : 45,
+        shootTimer: type === 'turret' ? 0.8 + Math.random() : type === 'tank' ? 1.2 + Math.random() : type === 'UFO' ? 0.5 : 999,
+        points: type === 'UFO' ? 100 : type === 'tank' ? 30 : type === 'turret' ? 20 : 10
+      });
+    }
+    
+    // Spawn coin
+    function spawnCoin() {
+      coins.push({
+        x: 1000,
+        y: 100 + Math.random() * 340,
+        vx: -150,
+        collected: false,
+        floatOffset: Math.random() * Math.PI * 2
+      });
+    }
+    
+    // Spawn powerup
+    function spawnPowerup() {
+      const types = ['shield', 'rapidfire', 'nuke'];
+      const type = types[Math.floor(Math.random() * types.length)];
+      
+      powerups.push({
+        x: 1000,
+        y: 100 + Math.random() * 340,
+        vx: -120,
+        type: type,
+        collected: false,
+        floatOffset: Math.random() * Math.PI * 2
       });
     }
     
@@ -3217,16 +3268,45 @@ for(let k=0;k<6;k++)
       if(spawnTimer >= spawnRate) {
         spawnTimer = 0;
         spawnEnemy();
-        if(Math.random() > 0.7) spawnEnemy(); // Sometimes spawn 2
+        if(Math.random() > 0.6) spawnEnemy();
       }
       
-      // Increase difficulty over time
+      // Spawn coins
+      coinTimer += dt;
+      if(coinTimer >= 3) {
+        coinTimer = 0;
+        spawnCoin();
+      }
+      
+      // Spawn powerups
+      powerupTimer += dt;
+      if(powerupTimer >= 15) {
+        powerupTimer = 0;
+        spawnPowerup();
+      }
+      
+      // Increase difficulty
       difficultyTimer += dt;
-      if(difficultyTimer >= 10) {
+      if(difficultyTimer >= 12) {
         difficultyTimer = 0;
-        spawnRate = Math.max(0.5, spawnRate - 0.1);
-        scrollSpeed += 20;
-        console.log('Difficulty increased! Spawn rate:', spawnRate.toFixed(2));
+        spawnRate = Math.max(0.6, spawnRate - 0.15);
+        scrollSpeed += 15;
+      }
+      
+      // Invulnerability timer
+      if(invulnerable) {
+        invulnerableTimer -= dt;
+        if(invulnerableTimer <= 0) {
+          invulnerable = false;
+        }
+      }
+      
+      // Combo timer
+      if(combo > 0) {
+        comboTimer -= dt;
+        if(comboTimer <= 0) {
+          combo = 0;
+        }
       }
       
       // Shoot cooldown
@@ -3234,47 +3314,171 @@ for(let k=0;k<6;k++)
         canShoot = true;
       }
       
-      // Dragon movement (UP/DOWN or W/S)
+      // Dragon movement
       if(keys['ArrowUp'] || keys['w'] || keys['W']) {
         dragonY -= dragonSpeed * dt;
       }
       if(keys['ArrowDown'] || keys['s'] || keys['S']) {
         dragonY += dragonSpeed * dt;
       }
+      if(keys['ArrowLeft'] || keys['a'] || keys['A']) {
+        dragonX -= dragonSpeed * dt;
+      }
+      if(keys['ArrowRight'] || keys['d'] || keys['D']) {
+        dragonX += dragonSpeed * dt;
+      }
+      dragonX = Math.max(50, Math.min(350, dragonX));
       dragonY = Math.max(50, Math.min(490, dragonY));
       
       // === DRAW SCROLLING BACKGROUND ===
       backgroundOffset -= scrollSpeed * dt;
       if(backgroundOffset < -100) backgroundOffset = 0;
       
-      // Sky gradient
+      // Gradient sky
       const skyGrad = ctx.createLinearGradient(0, 0, 0, 540);
-      skyGrad.addColorStop(0, '#1a2a4a');
-      skyGrad.addColorStop(0.7, '#2a4a6a');
-      skyGrad.addColorStop(1, '#3a5a7a');
+      skyGrad.addColorStop(0, '#87CEEB');
+      skyGrad.addColorStop(0.5, '#B0E0E6');
+      skyGrad.addColorStop(1, '#FFA07A');
       ctx.fillStyle = skyGrad;
       ctx.fillRect(0, 0, 960, 540);
       
-      // Scrolling clouds
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-      for(let i = 0; i < 15; i++) {
-        const x = (i * 100 + backgroundOffset * 0.5) % 1060 - 100;
-        const y = (i * 37) % 400;
+      // Moving clouds
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+      for(let i = 0; i < 20; i++) {
+        const x = (i * 120 + backgroundOffset * 0.3) % 1080 - 120;
+        const y = (i * 41) % 400;
+        const size = 30 + (i % 3) * 15;
         ctx.beginPath();
-        ctx.ellipse(x, y, 40, 25, 0, 0, Math.PI * 2);
+        ctx.arc(x, y, size, 0, Math.PI * 2);
+        ctx.arc(x + size, y, size * 0.8, 0, Math.PI * 2);
+        ctx.arc(x + size * 2, y, size * 0.6, 0, Math.PI * 2);
         ctx.fill();
       }
       
-      // Ground far below (scrolling)
-      ctx.fillStyle = '#2d5016';
+      // Ground
+      ctx.fillStyle = '#90EE90';
       ctx.fillRect(0, 480, 960, 60);
       
       // Ground details
-      ctx.fillStyle = '#1a3010';
-      for(let i = 0; i < 12; i++) {
-        const x = (i * 90 + backgroundOffset) % 960;
-        ctx.fillRect(x, 490, 50, 15);
-        ctx.fillRect(x + 10, 510, 30, 20);
+      ctx.fillStyle = '#228B22';
+      for(let i = 0; i < 15; i++) {
+        const x = (i * 70 + backgroundOffset) % 960;
+        ctx.fillRect(x, 490, 40, 10);
+        ctx.fillRect(x + 10, 505, 20, 25);
+      }
+      
+      // === UPDATE & DRAW COINS ===
+      for(let i = coins.length - 1; i >= 0; i--) {
+        const coin = coins[i];
+        coin.x += coin.vx * dt;
+        
+        if(coin.x < -50) {
+          coins.splice(i, 1);
+          continue;
+        }
+        
+        // Collision with dragon
+        const dist = Math.sqrt((coin.x - dragonX)**2 + (coin.y - dragonY)**2);
+        if(dist < 40 && !coin.collected) {
+          coin.collected = true;
+          dragonScore += 5;
+          document.getElementById('dragonScore').textContent = dragonScore;
+          
+          // Particle burst
+          for(let k = 0; k < 10; k++) {
+            particles.push({
+              x: coin.x,
+              y: coin.y,
+              vx: (Math.random() - 0.5) * 200,
+              vy: (Math.random() - 0.5) * 200,
+              life: 0.6,
+              age: 0,
+              color: '#ffd700'
+            });
+          }
+          coins.splice(i, 1);
+          continue;
+        }
+        
+        // Draw coin
+        const float = Math.sin(Date.now() / 250 + coin.floatOffset) * 4;
+        const pulse = 0.85 + Math.sin(Date.now() / 180) * 0.15;
+        
+        ctx.save();
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = '#ffd700';
+        ctx.fillStyle = '#ffd700';
+        ctx.beginPath();
+        ctx.arc(coin.x, coin.y + float, 14 * pulse, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.fillStyle = '#ffaa00';
+        ctx.font = 'bold 18px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('$', coin.x, coin.y + float);
+        ctx.restore();
+      }
+      
+      // === UPDATE & DRAW POWERUPS ===
+      for(let i = powerups.length - 1; i >= 0; i--) {
+        const pu = powerups[i];
+        pu.x += pu.vx * dt;
+        
+        if(pu.x < -50) {
+          powerups.splice(i, 1);
+          continue;
+        }
+        
+        // Collision with dragon
+        const dist = Math.sqrt((pu.x - dragonX)**2 + (pu.y - dragonY)**2);
+        if(dist < 45 && !pu.collected) {
+          pu.collected = true;
+          
+          // Apply powerup
+          if(pu.type === 'shield') {
+            invulnerable = true;
+            invulnerableTimer = 8;
+          } else if(pu.type === 'rapidfire') {
+            shootCooldown = 0.05;
+            setTimeout(() => { shootCooldown = 0.12; }, 8000);
+          } else if(pu.type === 'nuke') {
+            // Destroy all enemies!
+            for(const enemy of enemyCars) {
+              dragonScore += enemy.points;
+              for(let k = 0; k < 20; k++) {
+                explosions.push({ x: enemy.x, y: enemy.y, age: 0, maxAge: 1.2 });
+              }
+            }
+            enemyCars.length = 0;
+            document.getElementById('dragonScore').textContent = dragonScore;
+          }
+          
+          powerups.splice(i, 1);
+          continue;
+        }
+        
+        // Draw powerup
+        const float = Math.sin(Date.now() / 220 + pu.floatOffset) * 5;
+        const pulse = 0.9 + Math.sin(Date.now() / 160) * 0.1;
+        
+        ctx.save();
+        const colors = {shield: '#00bfff', rapidfire: '#ff6b35', nuke: '#ff0066'};
+        const icons = {shield: '🛡️', rapidfire: '⚡', nuke: '💣'};
+        
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = colors[pu.type];
+        ctx.fillStyle = colors[pu.type];
+        ctx.beginPath();
+        ctx.arc(pu.x, pu.y + float, 18 * pulse, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.shadowBlur = 0;
+        ctx.font = 'bold 24px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(icons[pu.type], pu.x, pu.y + float);
+        ctx.restore();
       }
       
       // === UPDATE & DRAW ENEMY CARS ===
@@ -3283,58 +3487,57 @@ for(let k=0;k<6;k++)
         enemy.x += enemy.vx * dt;
         enemy.y += enemy.vy * dt;
         
-        // Keep in bounds vertically
-        if(enemy.y < 50) enemy.vy = Math.abs(enemy.vy);
-        if(enemy.y > 450) enemy.vy = -Math.abs(enemy.vy);
+        // UFO sine wave movement
+        if(enemy.type === 'UFO') {
+          enemy.y += Math.sin(Date.now() / 300 + enemy.x) * 2;
+        }
         
-        // Remove if off screen
-        if(enemy.x < -100) {
+        // Keep in bounds
+        if(enemy.y < 60) enemy.vy = Math.abs(enemy.vy);
+        if(enemy.y > 420) enemy.vy = -Math.abs(enemy.vy);
+        
+        if(enemy.x < -120) {
           enemyCars.splice(i, 1);
           continue;
         }
         
-        // Shooting logic (turrets and tanks shoot)
-        if(enemy.type === 'turret' || enemy.type === 'tank') {
+        // Shooting logic
+        if(enemy.shootTimer !== 999) {
           enemy.shootTimer -= dt;
           if(enemy.shootTimer <= 0) {
-            enemy.shootTimer = (enemy.type === 'turret' ? 1 : 1.5) + Math.random();
+            enemy.shootTimer = (enemy.type === 'UFO' ? 0.7 : enemy.type === 'turret' ? 1.1 : 1.6) + Math.random() * 0.5;
             
             // Shoot at dragon
             const dx = dragonX - enemy.x;
             const dy = dragonY - enemy.y;
             const dist = Math.sqrt(dx*dx + dy*dy);
             
-            // Create bullet trail
-            for(let j = 0; j < 3; j++) {
-              particles.push({
-                x: enemy.x,
-                y: enemy.y,
-                vx: (dx/dist) * 200 + (Math.random() - 0.5) * 50,
-                vy: (dy/dist) * 200 + (Math.random() - 0.5) * 50,
-                life: 0.5,
-                age: 0,
-                color: '#ffff00'
-              });
-            }
+            // Enemy bullet (we'll check collision later)
+            particles.push({
+              x: enemy.x,
+              y: enemy.y,
+              vx: (dx/dist) * 250,
+              vy: (dy/dist) * 250,
+              life: 0.8,
+              age: 0,
+              color: '#ff0000',
+              isEnemyBullet: true
+            });
           }
         }
         
-        // Check collision with dragon
+        // Collision with dragon
         const distToDragon = Math.sqrt((enemy.x - dragonX)**2 + (enemy.y - dragonY)**2);
-        if(distToDragon < enemy.size + 40) {
-          // Hit dragon!
+        if(distToDragon < enemy.size + 35 && !invulnerable) {
           dragonLives--;
           document.getElementById('dragonLives').textContent = dragonLives;
           enemyCars.splice(i, 1);
           
-          // Big explosion
-          for(let k = 0; k < 20; k++) {
-            explosions.push({
-              x: enemy.x,
-              y: enemy.y,
-              age: 0,
-              maxAge: 1
-            });
+          invulnerable = true;
+          invulnerableTimer = 1.5;
+          
+          for(let k = 0; k < 25; k++) {
+            explosions.push({ x: enemy.x, y: enemy.y, age: 0, maxAge: 1 });
           }
           
           if(dragonLives <= 0) {
@@ -3344,112 +3547,191 @@ for(let k=0;k<6;k++)
           continue;
         }
         
-        // Draw enemy based on type
-        if(enemy.type === 'car') {
-          // Regular car
+        // Draw enemy
+        if(enemy.type === 'UFO') {
+          // Cartoon UFO
           ctx.save();
           ctx.translate(enemy.x, enemy.y);
-          ctx.rotate(Math.PI); // Face left
+          
+          const wobble = Math.sin(Date.now() / 200) * 3;
           
           // Shadow
-          ctx.fillStyle = 'rgba(0,0,0,0.3)';
-          ctx.fillRect(-25, 15, 50, 8);
+          ctx.globalAlpha = 0.3;
+          ctx.fillStyle = '#000';
+          ctx.beginPath();
+          ctx.ellipse(0, 25, 35, 10, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.globalAlpha = 1;
           
-          // Body
-          ctx.fillStyle = enemy.color;
-          ctx.fillRect(-25, -15, 50, 30);
+          // Bottom dome
+          ctx.fillStyle = '#555';
+          ctx.beginPath();
+          ctx.ellipse(0, wobble, 40, 15, 0, 0, Math.PI * 2);
+          ctx.fill();
+          
+          // Top dome
+          const ufoGrad = ctx.createRadialGradient(-10, -10 + wobble, 0, 0, wobble, 35);
+          ufoGrad.addColorStop(0, '#00ffff');
+          ufoGrad.addColorStop(1, '#0088ff');
+          ctx.fillStyle = ufoGrad;
+          ctx.beginPath();
+          ctx.arc(0, wobble, 25, 0, Math.PI * 2);
+          ctx.fill();
           
           // Shine
-          const carShine = ctx.createLinearGradient(0, -15, 0, 15);
-          carShine.addColorStop(0, 'rgba(255,255,255,0.4)');
-          carShine.addColorStop(1, 'rgba(0,0,0,0.2)');
-          ctx.fillStyle = carShine;
-          ctx.fillRect(-25, -15, 50, 15);
-          
-          // Roof
-          ctx.fillStyle = enemy.color;
-          ctx.fillRect(-15, -25, 30, 15);
-          
-          // Windows
-          ctx.fillStyle = '#2a5a8a';
-          ctx.fillRect(-13, -23, 11, 11);
-          ctx.fillRect(2, -23, 11, 11);
-          
-          // Wheels
-          ctx.fillStyle = '#1a1a1a';
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
           ctx.beginPath();
-          ctx.arc(-18, 15, 6, 0, Math.PI * 2);
+          ctx.arc(-8, -8 + wobble, 10, 0, Math.PI * 2);
           ctx.fill();
-          ctx.beginPath();
-          ctx.arc(18, 15, 6, 0, Math.PI * 2);
-          ctx.fill();
+          
+          // Lights
+          const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00'];
+          for(let j = 0; j < 4; j++) {
+            const angle = (Date.now() / 400 + j * Math.PI / 2) % (Math.PI * 2);
+            const lx = Math.cos(angle) * 28;
+            const ly = Math.sin(angle) * 10 + wobble;
+            ctx.fillStyle = colors[j];
+            ctx.beginPath();
+            ctx.arc(lx, ly, 4, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          
+          // Health bar
+          ctx.fillStyle = '#333';
+          ctx.fillRect(-30, -35, 60, 4);
+          ctx.fillStyle = '#00ff00';
+          ctx.fillRect(-30, -35, (enemy.health / enemy.maxHealth) * 60, 4);
           
           ctx.restore();
           
         } else if(enemy.type === 'tank') {
-          // Tank - bigger and tougher
-          ctx.fillStyle = '#556b2f';
-          ctx.fillRect(enemy.x - 35, enemy.y - 20, 70, 40);
+          // Tank
+          ctx.save();
+          ctx.translate(enemy.x, enemy.y);
           
-          // Tank shine
-          ctx.fillStyle = 'rgba(255,255,255,0.2)';
-          ctx.fillRect(enemy.x - 35, enemy.y - 20, 70, 20);
+          // Body
+          ctx.fillStyle = '#556b2f';
+          ctx.fillRect(-40, -22, 80, 44);
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+          ctx.fillRect(-40, -22, 80, 22);
           
           // Turret
           ctx.fillStyle = '#3a4a1f';
           ctx.beginPath();
-          ctx.arc(enemy.x, enemy.y, 15, 0, Math.PI * 2);
+          ctx.arc(0, 0, 18, 0, Math.PI * 2);
           ctx.fill();
           
-          // Gun barrel pointing at dragon
+          // Gun
           const angle = Math.atan2(dragonY - enemy.y, dragonX - enemy.x);
           ctx.save();
-          ctx.translate(enemy.x, enemy.y);
           ctx.rotate(angle);
           ctx.fillStyle = '#2a2a2a';
-          ctx.fillRect(-5, -4, 25, 8);
-          ctx.fillStyle = '#ff0000';
-          ctx.fillRect(18, -3, 4, 6);
-          ctx.restore();
-          
-          // Treads
-          ctx.fillStyle = '#1a1a1a';
-          ctx.fillRect(enemy.x - 35, enemy.y - 22, 70, 5);
-          ctx.fillRect(enemy.x - 35, enemy.y + 17, 70, 5);
-          
-          // Health bar
-          ctx.fillStyle = '#333';
-          ctx.fillRect(enemy.x - 35, enemy.y - 30, 70, 5);
-          ctx.fillStyle = '#ff0000';
-          ctx.fillRect(enemy.x - 35, enemy.y - 30, (enemy.health / 3) * 70, 5);
-          
-        } else if(enemy.type === 'turret') {
-          // Stationary turret
-          ctx.fillStyle = '#666';
-          ctx.fillRect(enemy.x - 25, enemy.y - 15, 50, 30);
-          
-          // Turret base
-          ctx.fillStyle = '#444';
-          ctx.beginPath();
-          ctx.arc(enemy.x, enemy.y, 18, 0, Math.PI * 2);
-          ctx.fill();
-          
-          // Gun rotating to aim at dragon
-          const angle = Math.atan2(dragonY - enemy.y, dragonX - enemy.x);
-          ctx.save();
-          ctx.translate(enemy.x, enemy.y);
-          ctx.rotate(angle);
-          ctx.fillStyle = '#333';
           ctx.fillRect(-5, -5, 30, 10);
           ctx.fillStyle = '#ff0000';
           ctx.fillRect(23, -4, 5, 8);
           ctx.restore();
           
+          // Treads
+          ctx.fillStyle = '#1a1a1a';
+          ctx.fillRect(-40, -24, 80, 6);
+          ctx.fillRect(-40, 18, 80, 6);
+          
           // Health bar
           ctx.fillStyle = '#333';
-          ctx.fillRect(enemy.x - 25, enemy.y - 25, 50, 4);
+          ctx.fillRect(-40, -32, 80, 5);
+          ctx.fillStyle = '#ff0000';
+          ctx.fillRect(-40, -32, (enemy.health / enemy.maxHealth) * 80, 5);
+          
+          ctx.restore();
+          
+        } else if(enemy.type === 'turret') {
+          // Turret
+          ctx.save();
+          ctx.translate(enemy.x, enemy.y);
+          
+          // Base
+          ctx.fillStyle = '#666';
+          ctx.fillRect(-28, -18, 56, 36);
+          
+          // Turret
+          ctx.fillStyle = '#444';
+          ctx.beginPath();
+          ctx.arc(0, 0, 20, 0, Math.PI * 2);
+          ctx.fill();
+          
+          // Gun
+          const angle = Math.atan2(dragonY - enemy.y, dragonX - enemy.x);
+          ctx.save();
+          ctx.rotate(angle);
+          ctx.fillStyle = '#333';
+          ctx.fillRect(-6, -6, 35, 12);
+          ctx.fillStyle = '#ff0000';
+          ctx.fillRect(27, -5, 6, 10);
+          ctx.restore();
+          
+          // Health bar
+          ctx.fillStyle = '#333';
+          ctx.fillRect(-28, -28, 56, 5);
           ctx.fillStyle = '#ffc107';
-          ctx.fillRect(enemy.x - 25, enemy.y - 25, (enemy.health / 2) * 50, 4);
+          ctx.fillRect(-28, -28, (enemy.health / enemy.maxHealth) * 56, 5);
+          
+          ctx.restore();
+          
+        } else {
+          // Regular car
+          ctx.save();
+          ctx.translate(enemy.x, enemy.y);
+          ctx.rotate(Math.PI);
+          
+          const wobble = Math.sin(Date.now() / 350 + enemy.x) * 1;
+          
+          // Shadow
+          ctx.globalAlpha = 0.3;
+          ctx.fillStyle = '#000';
+          ctx.fillRect(-28, 18, 56, 10);
+          ctx.globalAlpha = 1;
+          
+          // Body
+          ctx.fillStyle = enemy.color;
+          ctx.strokeStyle = '#000';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.roundRect(-28, -18 + wobble, 56, 36, 8);
+          ctx.fill();
+          ctx.stroke();
+          
+          // Shine
+          const shine = ctx.createLinearGradient(0, -18 + wobble, 0, 18 + wobble);
+          shine.addColorStop(0, 'rgba(255, 255, 255, 0.4)');
+          shine.addColorStop(1, 'rgba(0, 0, 0, 0.2)');
+          ctx.fillStyle = shine;
+          ctx.fillRect(-28, -18 + wobble, 56, 18);
+          
+          // Roof
+          ctx.fillStyle = enemy.color;
+          ctx.fillRect(-18, -28 + wobble, 36, 15);
+          
+          // Windows
+          ctx.fillStyle = '#2a5a8a';
+          ctx.fillRect(-16, -26 + wobble, 14, 11);
+          ctx.fillRect(2, -26 + wobble, 14, 11);
+          
+          // Wheels
+          ctx.fillStyle = '#1a1a1a';
+          ctx.beginPath();
+          ctx.arc(-20, 18 + wobble, 7, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(20, 18 + wobble, 7, 0, Math.PI * 2);
+          ctx.fill();
+          
+          ctx.restore();
+          
+          // Health bar
+          ctx.fillStyle = '#333';
+          ctx.fillRect(enemy.x - 25, enemy.y - 30, 50, 4);
+          ctx.fillStyle = '#00ff00';
+          ctx.fillRect(enemy.x - 25, enemy.y - 30, (enemy.health / enemy.maxHealth) * 50, 4);
         }
       }
       
@@ -3459,7 +3741,6 @@ for(let k=0;k<6;k++)
         fb.x += fb.vx * dt;
         fb.y += fb.vy * dt;
         
-        // Remove if off screen
         if(fb.x > 1000 || fb.y < 0 || fb.y > 540) {
           fireballs.splice(i, 1);
           continue;
@@ -3474,40 +3755,36 @@ for(let k=0;k<6;k++)
             enemy.health--;
             fireballs.splice(i, 1);
             
-            // Hit particles
-            for(let k = 0; k < 8; k++) {
+            combo++;
+            comboTimer = 2;
+            
+            for(let k = 0; k < 12; k++) {
               particles.push({
                 x: fb.x,
                 y: fb.y,
-                vx: (Math.random() - 0.5) * 200,
-                vy: (Math.random() - 0.5) * 200,
-                life: 0.6,
+                vx: (Math.random() - 0.5) * 250,
+                vy: (Math.random() - 0.5) * 250,
+                life: 0.7,
                 age: 0,
-                color: '#ff6600'
+                color: ['#ff6600', '#ffaa00', '#ffff00'][Math.floor(Math.random() * 3)]
               });
             }
             
             if(enemy.health <= 0) {
               enemyCars.splice(j, 1);
-              dragonScore += enemy.type === 'tank' ? 30 : enemy.type === 'turret' ? 20 : 10;
+              dragonScore += enemy.points * (1 + Math.floor(combo / 3));
               document.getElementById('dragonScore').textContent = dragonScore;
               
-              // Explosion
-              for(let k = 0; k < 15; k++) {
-                explosions.push({
-                  x: enemy.x,
-                  y: enemy.y,
-                  age: 0,
-                  maxAge: 1
-                });
+              for(let k = 0; k < 20; k++) {
+                explosions.push({ x: enemy.x, y: enemy.y, age: 0, maxAge: 1.2 });
                 particles.push({
                   x: enemy.x,
                   y: enemy.y,
-                  vx: (Math.random() - 0.5) * 300,
-                  vy: (Math.random() - 0.5) * 300,
-                  life: 1,
+                  vx: (Math.random() - 0.5) * 350,
+                  vy: (Math.random() - 0.5) * 350,
+                  life: 1.2,
                   age: 0,
-                  color: Math.random() > 0.5 ? '#ff6600' : '#ffaa00'
+                  color: ['#ff6600', '#ff0000', '#ffaa00'][Math.floor(Math.random() * 3)]
                 });
               }
             }
@@ -3517,23 +3794,33 @@ for(let k=0;k<6;k++)
         
         if(i < 0 || i >= fireballs.length) continue;
         
-        // Draw fireball with trail
-        ctx.shadowBlur = 20;
+        // Draw fireball
+        ctx.save();
+        ctx.shadowBlur = 25;
         ctx.shadowColor = '#ff6600';
-        ctx.fillStyle = '#ff6600';
+        
+        const pulse = Math.sin(Date.now() / 90) * 0.2 + 0.9;
+        const fireGrad = ctx.createRadialGradient(fb.x, fb.y, 0, fb.x, fb.y, fb.size);
+        fireGrad.addColorStop(0, '#ffff00');
+        fireGrad.addColorStop(0.3, '#ff6600');
+        fireGrad.addColorStop(1, '#ff0000');
+        ctx.fillStyle = fireGrad;
         ctx.beginPath();
-        ctx.arc(fb.x, fb.y, fb.size, 0, Math.PI * 2);
+        ctx.arc(fb.x, fb.y, fb.size * pulse, 0, Math.PI * 2);
         ctx.fill();
-        ctx.fillStyle = '#ffaa00';
+        
+        ctx.fillStyle = '#ffff00';
         ctx.beginPath();
-        ctx.arc(fb.x - 5, fb.y, fb.size * 0.6, 0, Math.PI * 2);
+        ctx.arc(fb.x - 6, fb.y, fb.size * 0.5, 0, Math.PI * 2);
         ctx.fill();
+        
         ctx.shadowBlur = 0;
+        ctx.restore();
         
         // Trail
-        ctx.fillStyle = 'rgba(255, 102, 0, 0.3)';
+        ctx.fillStyle = 'rgba(255, 102, 0, 0.25)';
         ctx.beginPath();
-        ctx.arc(fb.x - 15, fb.y, fb.size * 0.7, 0, Math.PI * 2);
+        ctx.arc(fb.x - 20, fb.y, fb.size * 0.6, 0, Math.PI * 2);
         ctx.fill();
       }
       
@@ -3549,10 +3836,29 @@ for(let k=0;k<6;k++)
           continue;
         }
         
+        // Check if enemy bullet hits dragon
+        if(p.isEnemyBullet && !invulnerable) {
+          const dist = Math.sqrt((p.x - dragonX)**2 + (p.y - dragonY)**2);
+          if(dist < 30) {
+            dragonLives--;
+            document.getElementById('dragonLives').textContent = dragonLives;
+            particles.splice(i, 1);
+            
+            invulnerable = true;
+            invulnerableTimer = 1.5;
+            
+            if(dragonLives <= 0) {
+              gameRunning = false;
+              showDragonGameOver();
+            }
+            continue;
+          }
+        }
+        
         const alpha = 1 - (p.age / p.life);
         ctx.fillStyle = p.color + Math.floor(alpha * 255).toString(16).padStart(2, '0');
         ctx.beginPath();
-        ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, p.isEnemyBullet ? 6 : 5, 0, Math.PI * 2);
         ctx.fill();
       }
       
@@ -3567,7 +3873,7 @@ for(let k=0;k<6;k++)
         }
         
         const progress = exp.age / exp.maxAge;
-        const size = 80 * (1 - progress);
+        const size = 90 * (1 - progress);
         const alpha = 1 - progress;
         
         ctx.fillStyle = `rgba(255, 102, 0, ${alpha})`;
@@ -3575,165 +3881,223 @@ for(let k=0;k<6;k++)
         ctx.arc(exp.x, exp.y, size, 0, Math.PI * 2);
         ctx.fill();
         
-        ctx.fillStyle = `rgba(255, 170, 0, ${alpha * 0.7})`;
+        ctx.fillStyle = `rgba(255, 170, 0, ${alpha * 0.8})`;
         ctx.beginPath();
         ctx.arc(exp.x, exp.y, size * 0.7, 0, Math.PI * 2);
         ctx.fill();
         
-        ctx.fillStyle = `rgba(255, 255, 0, ${alpha * 0.5})`;
+        ctx.fillStyle = `rgba(255, 255, 0, ${alpha * 0.6})`;
         ctx.beginPath();
         ctx.arc(exp.x, exp.y, size * 0.4, 0, Math.PI * 2);
         ctx.fill();
       }
       
-      // === DRAW DRAGON (flying forward on left side) ===
+      // === DRAW DRAGON ===
       ctx.save();
       ctx.translate(dragonX, dragonY);
       
-      const wingFlap = Math.sin(Date.now() / 150) * 0.4;
+      // Invulnerability flash
+      if(invulnerable) {
+        ctx.globalAlpha = Math.sin(Date.now() / 100) * 0.5 + 0.5;
+      }
       
-      // Dragon faces RIGHT (flying forward)
+      const wingFlap = Math.sin(Date.now() / 120) * 0.5;
       
-      // Tail (behind)
+      // Tail
       ctx.strokeStyle = '#f44336';
-      ctx.lineWidth = 18;
+      ctx.lineWidth = 20;
       ctx.lineCap = 'round';
       ctx.beginPath();
-      ctx.moveTo(-40, 0);
-      ctx.quadraticCurveTo(-60, 10, -70, 5);
+      ctx.moveTo(-45, 0);
+      ctx.quadraticCurveTo(-65, 12, -78, 8);
       ctx.stroke();
       
-      // Wings (flapping)
+      // Tail tip
+      ctx.fillStyle = '#ff9800';
+      ctx.beginPath();
+      ctx.moveTo(-78, 8);
+      ctx.lineTo(-88, 0);
+      ctx.lineTo(-75, 10);
+      ctx.closePath();
+      ctx.fill();
+      
+      // Wings
       ctx.fillStyle = '#e63946';
+      ctx.strokeStyle = '#8b0000';
+      ctx.lineWidth = 3;
       
       // Top wing
       ctx.save();
-      ctx.rotate(wingFlap - 0.3);
+      ctx.rotate(wingFlap - 0.4);
       ctx.beginPath();
-      ctx.moveTo(-10, -10);
-      ctx.lineTo(-40, -50);
-      ctx.lineTo(-20, -15);
+      ctx.moveTo(-12, -12);
+      ctx.lineTo(-45, -60);
+      ctx.lineTo(-25, -18);
       ctx.closePath();
       ctx.fill();
+      ctx.stroke();
       ctx.restore();
       
       // Bottom wing
       ctx.save();
-      ctx.rotate(-wingFlap + 0.3);
+      ctx.rotate(-wingFlap + 0.4);
       ctx.beginPath();
-      ctx.moveTo(-10, 10);
-      ctx.lineTo(-40, 50);
-      ctx.lineTo(-20, 15);
+      ctx.moveTo(-12, 12);
+      ctx.lineTo(-45, 60);
+      ctx.lineTo(-25, 18);
       ctx.closePath();
       ctx.fill();
+      ctx.stroke();
       ctx.restore();
       
       // Body
-      ctx.fillStyle = '#f44336';
+      const bodyGrad = ctx.createRadialGradient(-5, -5, 0, 0, 0, 50);
+      bodyGrad.addColorStop(0, '#ff6b6b');
+      bodyGrad.addColorStop(1, '#f44336');
+      ctx.fillStyle = bodyGrad;
+      ctx.strokeStyle = '#8b0000';
+      ctx.lineWidth = 4;
       ctx.beginPath();
-      ctx.ellipse(0, 0, 45, 28, 0, 0, Math.PI * 2);
+      ctx.ellipse(0, 0, 50, 32, 0, 0, Math.PI * 2);
       ctx.fill();
+      ctx.stroke();
       
       // Belly
       ctx.fillStyle = '#ff7961';
       ctx.beginPath();
-      ctx.ellipse(5, 0, 35, 22, 0, 0, Math.PI * 2);
+      ctx.ellipse(8, 0, 38, 25, 0, 0, Math.PI * 2);
       ctx.fill();
       
-      // Head (facing right)
+      // Head
       ctx.fillStyle = '#f44336';
       ctx.beginPath();
-      ctx.ellipse(40, 0, 30, 25, 0, 0, Math.PI * 2);
+      ctx.ellipse(45, 0, 32, 28, 0, 0, Math.PI * 2);
       ctx.fill();
+      ctx.stroke();
       
       // Snout
       ctx.fillStyle = '#ff7961';
       ctx.beginPath();
-      ctx.ellipse(62, 0, 20, 16, 0, 0, Math.PI * 2);
+      ctx.ellipse(68, 0, 22, 18, 0, 0, Math.PI * 2);
       ctx.fill();
+      ctx.stroke();
       
       // Nostrils
       ctx.fillStyle = '#000';
       ctx.beginPath();
-      ctx.ellipse(72, -6, 4, 5, 0, 0, Math.PI * 2);
+      ctx.ellipse(78, -7, 4, 5, 0, 0, Math.PI * 2);
       ctx.fill();
       ctx.beginPath();
-      ctx.ellipse(72, 6, 4, 5, 0, 0, Math.PI * 2);
+      ctx.ellipse(78, 7, 4, 5, 0, 0, Math.PI * 2);
       ctx.fill();
       
-      // Eye (looking forward)
+      // Eyes
       ctx.fillStyle = '#fff';
       ctx.beginPath();
-      ctx.ellipse(48, -12, 12, 14, 0, 0, Math.PI * 2);
+      ctx.ellipse(52, -14, 13, 15, 0, 0, Math.PI * 2);
       ctx.fill();
-      ctx.fillStyle = '#fff';
       ctx.beginPath();
-      ctx.ellipse(48, 12, 12, 14, 0, 0, Math.PI * 2);
+      ctx.ellipse(52, 14, 13, 15, 0, 0, Math.PI * 2);
       ctx.fill();
       
       ctx.strokeStyle = '#000';
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.ellipse(48, -12, 12, 14, 0, 0, Math.PI * 2);
+      ctx.ellipse(52, -14, 13, 15, 0, 0, Math.PI * 2);
       ctx.stroke();
       ctx.beginPath();
-      ctx.ellipse(48, 12, 12, 14, 0, 0, Math.PI * 2);
+      ctx.ellipse(52, 14, 13, 15, 0, 0, Math.PI * 2);
       ctx.stroke();
       
       // Pupils
-      ctx.shadowBlur = 8;
+      ctx.shadowBlur = 10;
       ctx.shadowColor = '#ff3300';
       ctx.fillStyle = '#ff3300';
       ctx.beginPath();
-      ctx.ellipse(52, -12, 6, 8, 0, 0, Math.PI * 2);
+      ctx.ellipse(56, -14, 7, 9, 0, 0, Math.PI * 2);
       ctx.fill();
       ctx.beginPath();
-      ctx.ellipse(52, 12, 6, 8, 0, 0, Math.PI * 2);
+      ctx.ellipse(56, 14, 7, 9, 0, 0, Math.PI * 2);
       ctx.fill();
       ctx.shadowBlur = 0;
       
       // Highlights
       ctx.fillStyle = '#ffeb3b';
       ctx.beginPath();
-      ctx.arc(50, -15, 3, 0, Math.PI * 2);
+      ctx.arc(54, -17, 4, 0, Math.PI * 2);
       ctx.fill();
       ctx.beginPath();
-      ctx.arc(50, 9, 3, 0, Math.PI * 2);
+      ctx.arc(54, 11, 4, 0, Math.PI * 2);
       ctx.fill();
       
       // Horns
       ctx.fillStyle = '#ff9800';
       ctx.strokeStyle = '#f57c00';
       ctx.lineWidth = 2;
+      
       ctx.beginPath();
-      ctx.moveTo(30, -22);
-      ctx.lineTo(28, -38);
-      ctx.lineTo(35, -24);
+      ctx.moveTo(32, -25);
+      ctx.lineTo(30, -42);
+      ctx.lineTo(38, -27);
       ctx.closePath();
       ctx.fill();
       ctx.stroke();
       
       ctx.beginPath();
-      ctx.moveTo(45, -24);
-      ctx.lineTo(45, -40);
-      ctx.lineTo(50, -26);
+      ctx.moveTo(50, -26);
+      ctx.lineTo(50, -44);
+      ctx.lineTo(56, -28);
       ctx.closePath();
       ctx.fill();
       ctx.stroke();
       
-      // Spikes on back
-      const spikes = [{x: -5, y: -25}, {x: 15, y: -27}, {x: 30, y: -25}];
+      // Spikes
+      const spikes = [{x: -8, y: -28}, {x: 18, y: -30}, {x: 35, y: -28}];
       spikes.forEach(spike => {
         ctx.fillStyle = '#ff9800';
         ctx.beginPath();
         ctx.moveTo(spike.x, spike.y);
-        ctx.lineTo(spike.x - 5, spike.y - 12);
-        ctx.lineTo(spike.x + 5, spike.y - 12);
+        ctx.lineTo(spike.x - 6, spike.y - 14);
+        ctx.lineTo(spike.x + 6, spike.y - 14);
         ctx.closePath();
         ctx.fill();
       });
       
       ctx.restore();
+      
+      // === DRAW UI ELEMENTS ===
+      // Combo counter
+      if(combo > 2) {
+        ctx.save();
+        ctx.fillStyle = '#ffd700';
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 4;
+        ctx.font = 'bold 36px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        const comboText = `${combo}x COMBO!`;
+        ctx.strokeText(comboText, 480, 50);
+        ctx.fillText(comboText, 480, 50);
+        ctx.restore();
+      }
+      
+      // Powerup indicators
+      let puText = '';
+      if(invulnerable) puText += '🛡️ SHIELD ';
+      if(shootCooldown < 0.1) puText += '⚡ RAPID FIRE ';
+      
+      if(puText) {
+        ctx.save();
+        ctx.fillStyle = '#00bfff';
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 3;
+        ctx.font = 'bold 20px Arial';
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'top';
+        ctx.strokeText(puText, 940, 50);
+        ctx.fillText(puText, 940, 50);
+        ctx.restore();
+      }
       
       requestAnimationFrame(loop);
     }
@@ -4688,19 +5052,27 @@ ctx.restore();
           }
         }
         
-        // Check collision with FIRE HOLES (instant death!)
+        // Check collision with FIRE HOLES (2 damage!)
         for(const fh of fireHoles) {
           const dx = player.x - fh.x;
           const dy = player.y - fh.y;
           const dist = Math.sqrt(dx*dx + dy*dy);
           
-          if(dist < fh.r) {
-            // Player burned by fire hole - GAME OVER!
+          if(dist < fh.r && hitCooldown <= 0 && !gameOver) {
+            // Player burned by fire hole - 2 hits damage!
+            hitCount += 2;
+            hitCooldown = 0.45;
+            ui.hits.textContent = hitCount;
+            ui.dmgFill.style.width = Math.min(hitCount/hitsAllowed, 1) * 100 + '%';
             for(let k=0;k<25;k++) spawnParticle(player.x, player.y, rnd(-220,220), rnd(-220,220), rnd(0.5,1.2), Math.random() > 0.5 ? '#ff6600' : '#ff0000');
-            addScore(levelIndex);
-            resetStory();
-            levelIndex = 0;
-            startLevel(levelIndex);
+            spawnFloatingText(player.x, player.y - 40, '-2 HITS!', '#ff3347');
+            
+            if(hitCount >= hitsAllowed) {
+              addScore(levelIndex);
+              resetStory();
+              levelIndex = 0;
+              startLevel(levelIndex);
+            }
             break;
           }
         }
