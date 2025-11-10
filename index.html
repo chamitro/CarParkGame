@@ -482,7 +482,7 @@
             <span>The Perfectionist's Tale</span>
           </div>
           <div class="ending-requirement">
-            <strong>Requirement:</strong> Complete all 50 levels with 0-3 hits per level (maximum)
+            <strong>Requirement:</strong> Complete all 50 levels with 0-4 hits per level (maximum)
           </div>
           <div class="ending-reward">
             ✨ Reward: Unlock the complete story! Discover the hidden narrative that unfolds with each perfect run.
@@ -776,7 +776,7 @@ ctx.imageSmoothingEnabled = true;
   
   function getWordForLevel(levelIndex, hits) {
     // Return the word from MASTER_STORY, and track if it should be unlocked
-    const isUnlocked = (hits <= 3); // Unlock if 0, 1,2 or 3 hits
+    const isUnlocked = (hits <= 4); // Unlock if 0, 1,2 or 3 hits
     
     if(isUnlocked) {
       perfectLevelWords[levelIndex] = true; // Mark this level as perfect
@@ -3042,7 +3042,7 @@ if(prog>=need){
           
           <div style="padding:16px;background:${hasUnlockedFullStory ? '#1a2a1a' : '#1a1a1a'};border:2px solid ${hasUnlockedFullStory ? '#9be676' : '#334'};border-radius:8px;margin-bottom:12px">
             <p style="margin:0;font-size:18px">${hasUnlockedFullStory ? '✅' : '❌'} <strong>Ending 2:</strong> Unlock Full Story</p>
-            <p style="margin:4px 0 0;font-size:14px;color:#cfd3da">Complete all 50 levels with 0-3 hits each</p>
+            <p style="margin:4px 0 0;font-size:14px;color:#cfd3da">Complete all 50 levels with 0-4 hits each</p>
             <p style="margin:8px 0 0;font-size:16px;color:${hasUnlockedFullStory ? '#9be676' : '#ff6b6b'}">${unlockedWords}/50 words unlocked</p>
           </div>
           
