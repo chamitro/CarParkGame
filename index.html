@@ -3442,41 +3442,159 @@ if(prog>=need){
       dragonY = Math.max(50, Math.min(490, dragonY));
       
       // === DRAW SCROLLING BACKGROUND ===
-      backgroundOffset -= scrollSpeed * dt;
-      if(backgroundOffset < -100) backgroundOffset = 0;
-      
-      // Gradient sky
-      const skyGrad = ctx.createLinearGradient(0, 0, 0, 540);
-      skyGrad.addColorStop(0, '#87CEEB');
-      skyGrad.addColorStop(0.5, '#B0E0E6');
-      skyGrad.addColorStop(1, '#FFA07A');
-      ctx.fillStyle = skyGrad;
-      ctx.fillRect(0, 0, 960, 540);
-      
-      // Moving clouds
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-      for(let i = 0; i < 20; i++) {
-        const x = (i * 120 + backgroundOffset * 0.3) % 1080 - 120;
-        const y = (i * 41) % 400;
-        const size = 30 + (i % 3) * 15;
-        ctx.beginPath();
-        ctx.arc(x, y, size, 0, Math.PI * 2);
-        ctx.arc(x + size, y, size * 0.8, 0, Math.PI * 2);
-        ctx.arc(x + size * 2, y, size * 0.6, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      
-      // Ground
-      ctx.fillStyle = '#90EE90';
-      ctx.fillRect(0, 480, 960, 60);
-      
-      // Ground details
-      ctx.fillStyle = '#228B22';
-      for(let i = 0; i < 15; i++) {
-        const x = (i * 70 + backgroundOffset) % 960;
-        ctx.fillRect(x, 490, 40, 10);
-        ctx.fillRect(x + 10, 505, 20, 25);
-      }
+      // === DRAW ENHANCED SCROLLING BACKGROUND ===
+backgroundOffset -= scrollSpeed * dt;
+if(backgroundOffset < -1000) backgroundOffset = 0;
+
+// Dynamic sky gradient that shifts based on time
+const skyTime = Date.now() / 5000;
+const skyGrad = ctx.createLinearGradient(0, 0, 0, 540);
+skyGrad.addColorStop(0, `hsl(${200 + Math.sin(skyTime) * 10}, 70%, 70%)`);
+skyGrad.addColorStop(0.3, `hsl(${190 + Math.sin(skyTime * 0.7) * 15}, 65%, 75%)`);
+skyGrad.addColorStop(0.7, `hsl(${25 + Math.sin(skyTime * 0.5) * 10}, 100%, 75%)`);
+skyGrad.addColorStop(1, `hsl(${15 + Math.sin(skyTime * 0.3) * 10}, 100%, 70%)`);
+ctx.fillStyle = skyGrad;
+ctx.fillRect(0, 0, 960, 540);
+
+// Distant mountain silhouettes (far background layer)
+ctx.save();
+const mountainOffset = backgroundOffset * 0.1;
+ctx.fillStyle = 'rgba(100, 120, 150, 0.4)';
+ctx.beginPath();
+ctx.moveTo(-200 + mountainOffset, 420);
+for(let i = 0; i < 15; i++) {
+  const x = i * 100 + mountainOffset;
+  const height = 80 + Math.sin(i * 0.7) * 40;
+  ctx.lineTo(x, 420 - height);
+}
+ctx.lineTo(1200, 420);
+ctx.closePath();
+ctx.fill();
+
+// Mid-distance mountains (medium layer)
+ctx.fillStyle = 'rgba(120, 140, 160, 0.5)';
+ctx.beginPath();
+ctx.moveTo(-200 + mountainOffset * 1.5, 440);
+for(let i = 0; i < 12; i++) {
+  const x = i * 120 + mountainOffset * 1.5;
+  const height = 60 + Math.sin(i * 0.5) * 30;
+  ctx.lineTo(x, 440 - height);
+}
+ctx.lineTo(1200, 440);
+ctx.closePath();
+ctx.fill();
+ctx.restore();
+
+// Far clouds (slow moving, bigger, more transparent)
+ctx.save();
+for(let i = 0; i < 12; i++) {
+  const x = ((i * 150 + backgroundOffset * 0.15) % 1200) - 200;
+  const y = 50 + (i * 29) % 250;
+  const size = 40 + (i % 4) * 20;
+  const alpha = 0.3 + (i % 3) * 0.1;
+  
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = '#FFFFFF';
+  
+  // Fluffy cloud shape
+  ctx.beginPath();
+  ctx.arc(x, y, size, 0, Math.PI * 2);
+  ctx.arc(x + size * 0.8, y - size * 0.3, size * 0.9, 0, Math.PI * 2);
+  ctx.arc(x + size * 1.6, y, size * 0.8, 0, Math.PI * 2);
+  ctx.arc(x + size * 2.2, y + size * 0.2, size * 0.7, 0, Math.PI * 2);
+  ctx.arc(x + size * 1.2, y + size * 0.4, size * 0.6, 0, Math.PI * 2);
+  ctx.fill();
+}
+ctx.restore();
+
+// Medium clouds (medium speed, varied shapes)
+ctx.save();
+for(let i = 0; i < 15; i++) {
+  const x = ((i * 110 + backgroundOffset * 0.35) % 1200) - 200;
+  const y = 100 + (i * 37) % 300;
+  const size = 25 + (i % 3) * 15;
+  const alpha = 0.5 + (i % 2) * 0.15;
+  
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = '#FFFFFF';
+  
+  ctx.beginPath();
+  ctx.arc(x, y, size, 0, Math.PI * 2);
+  ctx.arc(x + size * 1.2, y - size * 0.2, size * 0.85, 0, Math.PI * 2);
+  ctx.arc(x + size * 2, y, size * 0.7, 0, Math.PI * 2);
+  ctx.arc(x + size, y + size * 0.3, size * 0.6, 0, Math.PI * 2);
+  ctx.fill();
+}
+ctx.restore();
+
+// Close clouds (fast moving, smaller, more opaque)
+ctx.save();
+for(let i = 0; i < 18; i++) {
+  const x = ((i * 90 + backgroundOffset * 0.6) % 1200) - 200;
+  const y = 150 + (i * 43) % 280;
+  const size = 18 + (i % 3) * 10;
+  
+  ctx.globalAlpha = 0.7 + (i % 2) * 0.2;
+  ctx.fillStyle = '#FFFFFF';
+  
+  ctx.beginPath();
+  ctx.arc(x, y, size, 0, Math.PI * 2);
+  ctx.arc(x + size, y, size * 0.8, 0, Math.PI * 2);
+  ctx.arc(x + size * 1.8, y, size * 0.6, 0, Math.PI * 2);
+  ctx.fill();
+}
+ctx.globalAlpha = 1;
+ctx.restore();
+
+// Enhanced ground with texture
+const groundGrad = ctx.createLinearGradient(0, 480, 0, 540);
+groundGrad.addColorStop(0, '#7CB342');
+groundGrad.addColorStop(0.5, '#689F38');
+groundGrad.addColorStop(1, '#558B2F');
+ctx.fillStyle = groundGrad;
+ctx.fillRect(0, 480, 960, 60);
+
+// Ground texture and details
+ctx.save();
+// Grass patches
+ctx.fillStyle = '#8BC34A';
+for(let i = 0; i < 25; i++) {
+  const x = ((i * 45 + backgroundOffset * 1.2) % 1000) - 40;
+  const y = 485 + (i % 3) * 5;
+  ctx.fillRect(x, y, 30 + (i % 2) * 10, 8);
+}
+
+// Dark grass accent
+ctx.fillStyle = '#558B2F';
+for(let i = 0; i < 20; i++) {
+  const x = ((i * 55 + backgroundOffset * 1.5) % 1000) - 40;
+  const y = 490 + (i % 4) * 4;
+  ctx.fillRect(x, y, 20 + (i % 3) * 8, 6);
+}
+
+// Trees/bushes in distance
+ctx.fillStyle = '#388E3C';
+for(let i = 0; i < 15; i++) {
+  const x = ((i * 70 + backgroundOffset * 1.0) % 1000) - 40;
+  const treeHeight = 15 + (i % 3) * 8;
+  
+  // Tree trunk
+  ctx.fillStyle = '#5D4037';
+  ctx.fillRect(x + 8, 505, 8, 20);
+  
+  // Tree foliage
+  ctx.fillStyle = '#388E3C';
+  ctx.beginPath();
+  ctx.arc(x + 12, 500, treeHeight, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Highlight
+  ctx.fillStyle = 'rgba(139, 195, 74, 0.6)';
+  ctx.beginPath();
+  ctx.arc(x + 8, 496, treeHeight * 0.5, 0, Math.PI * 2);
+  ctx.fill();
+}
+ctx.restore();
       
       // === UPDATE & DRAW COINS ===
       for(let i = coins.length - 1; i >= 0; i--) {
