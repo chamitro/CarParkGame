@@ -701,7 +701,9 @@
 // Start game function - must be global for onclick
 
 // Start game function - must be global for onclick
+// Start game function - must be global for onclick
 function startGame() {
+  console.log('startGame called');
   const startScreen = document.getElementById('startScreen');
   startScreen.style.animation = 'fadeOut 0.5s ease-out';
   setTimeout(() => {
@@ -711,34 +713,47 @@ function startGame() {
     document.getElementById('versionNumber').style.display = 'block';
     
     // Check if dragon bonus is unlocked and show button
-    checkDragonButtonVisibility();
+    try {
+      checkDragonButtonVisibility();
+    } catch(e) {
+      console.error('Error checking dragon button:', e);
+    }
     
     // Trigger the actual game start
-    if(window.gameInit) window.gameInit();
+    console.log('Calling gameInit');
+    if(window.gameInit) {
+      window.gameInit();
+    } else {
+      console.error('gameInit not found!');
+    }
   }, 500);
 }
 
 // Check if dragon button should be visible - must be global
 // Check if dragon button should be visible - must be global
+// Check if dragon button should be visible - must be global
 function checkDragonButtonVisibility() {
   try {
+    const dragonBtn = document.getElementById('dragonButton');
+    if(!dragonBtn) return;
+    
     const saved = localStorage.getItem('parkingGameEndings');
-    if(saved) {
-      const data = JSON.parse(saved);
-      const dragonUnlocked = data.ending1Ever && data.ending2Ever && data.ending3Ever;
-      
-      const dragonBtn = document.getElementById('dragonButton');
-      if(dragonBtn) {
-        dragonBtn.style.display = dragonUnlocked ? 'block' : 'none';
-      }
+    if(!saved) {
+      dragonBtn.style.display = 'none';
+      return;
     }
+    
+    const data = JSON.parse(saved);
+    const dragonUnlocked = data.ending1Ever && data.ending2Ever && data.ending3Ever;
+    dragonBtn.style.display = dragonUnlocked ? 'block' : 'none';
   } catch(e) {
-    console.log('Could not check dragon button visibility:', e);
+    console.log('Dragon button check error:', e);
   }
 }
 
 (()=>{
   'use strict';
+  })();
 
 (()=>{
   'use strict';
