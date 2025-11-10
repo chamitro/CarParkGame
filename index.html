@@ -699,6 +699,8 @@
 
 <script>
 // Start game function - must be global for onclick
+
+// Start game function - must be global for onclick
 function startGame() {
   const startScreen = document.getElementById('startScreen');
   startScreen.style.animation = 'fadeOut 0.5s ease-out';
@@ -715,6 +717,24 @@ function startGame() {
     if(window.gameInit) window.gameInit();
   }, 500);
 }
+
+// Check if dragon button should be visible - must be global
+function checkDragonButtonVisibility() {
+  const saved = localStorage.getItem('parkingGameEndings');
+  if(saved) {
+    const data = JSON.parse(saved);
+    const dragonUnlocked = data.ending1Ever && data.ending2Ever && data.ending3Ever;
+    
+    if(dragonUnlocked) {
+      document.getElementById('dragonButton').style.display = 'block';
+    } else {
+      document.getElementById('dragonButton').style.display = 'none';
+    }
+  }
+}
+
+(()=>{
+  'use strict';
 
 (()=>{
   'use strict';
@@ -2642,21 +2662,27 @@ function checkDragonButtonVisibility() {
   }
   
   // Save endings achievement to localStorage
-  function saveEndingsAchievement() {
-    const current = loadSavedEndings();
-    const data = {
-      ending1Ever: current.ending1Ever || hasCompletedAll50,
-      ending2Ever: current.ending2Ever || hasUnlockedFullStory,
-      ending3Ever: current.ending3Ever || hasCollected70PercentCoins
-    };
-    localStorage.setItem('parkingGameEndings', JSON.stringify(data));
-    
-    // Also save best progress
-    saveBestProgress();
-    
-    console.log('Saved endings:', data);
-    return data;
+function saveEndingsAchievement() {
+  const current = loadSavedEndings();
+  const data = {
+    ending1Ever: current.ending1Ever || hasCompletedAll50,
+    ending2Ever: current.ending2Ever || hasUnlockedFullStory,
+    ending3Ever: current.ending3Ever || hasCollected70PercentCoins
+  };
+  localStorage.setItem('parkingGameEndings', JSON.stringify(data));
+  
+  // Also save best progress
+  saveBestProgress();
+  
+  console.log('Saved endings:', data);
+  
+  // Check if dragon button should appear (call global function)
+  if(typeof checkDragonButtonVisibility === 'function') {
+    checkDragonButtonVisibility();
   }
+  
+  return data;
+}
   
   function saveEndingsAchievement() {
   const current = loadSavedEndings();
