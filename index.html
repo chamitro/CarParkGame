@@ -395,6 +395,42 @@
     display: none;
   }
   
+  /* MUSIC TOGGLE BUTTON */
+#musicButton {
+  position: fixed;
+  bottom: 120px;
+  left: 20px;
+  z-index: 999;
+  display: none;
+}
+
+#musicButton button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  padding: 0;
+  background: linear-gradient(135deg, #6a5acd, #4b3fb3);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  font-size: 24px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(106, 90, 205, 0.4);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+#musicButton button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(106, 90, 205, 0.6);
+}
+
+#musicButton button:active {
+  transform: translateY(0);
+}
+  
   #versionNumber:hover {
     color: rgba(207, 211, 218, 0.8);
   }
@@ -562,6 +598,12 @@
   </button>
 </div>
 
+<div id="musicButton" style="display:none;">
+  <button onclick="toggleBackgroundMusic(); this.textContent = document.getElementById('bgMusic').paused ? '🔇' : '🎵';" title="Toggle Music">
+    🎵
+  </button>
+</div>
+
 <!-- VERSION NUMBER -->
 <div id="versionNumber">v1.0.0</div>
 
@@ -707,26 +749,31 @@ function startGame() {
   const startScreen = document.getElementById('startScreen');
   startScreen.style.animation = 'fadeOut 0.5s ease-out';
   setTimeout(() => {
-    startScreen.style.display = 'none';
-    // Show Ko-fi button and version when game starts
-    document.getElementById('kofiButton').style.display = 'block';
-    document.getElementById('versionNumber').style.display = 'block';
-    
-    // Check if dragon bonus is unlocked and show button
-    try {
-      checkDragonButtonVisibility();
-    } catch(e) {
-      console.error('Error checking dragon button:', e);
-    }
-    
-    // Trigger the actual game start
-    console.log('Calling gameInit');
-    if(window.gameInit) {
-      window.gameInit();
-    } else {
-      console.error('gameInit not found!');
-    }
-  }, 500);
+  startScreen.style.display = 'none';
+  // Show Ko-fi button and version when game starts
+  document.getElementById('kofiButton').style.display = 'block';
+  document.getElementById('versionNumber').style.display = 'block';
+  document.getElementById('musicButton').style.display = 'block'; // ADD THIS LINE
+  
+  // Check if dragon bonus is unlocked and show button
+  try {
+    checkDragonButtonVisibility();
+  } catch(e) {
+    console.error('Error checking dragon button:', e);
+  }
+  
+  // Start background music
+  document.getElementById('musicButton').style.display = 'block';
+  startBackgroundMusic();
+  
+  // Trigger the actual game start
+  console.log('Calling gameInit');
+  if(window.gameInit) {
+    window.gameInit();
+  } else {
+    console.error('gameInit not found!');
+  }
+}, 500);
 }
 
 // Check if dragon button should be visible - must be global
@@ -2631,14 +2678,55 @@ class AngryVehicle {
   }
   
   // Check if dragon button should be visible
+
+// Check if dragon button should be visible - must be global
 function checkDragonButtonVisibility() {
-  const savedEndings = loadSavedEndings();
-  const dragonUnlocked = savedEndings.ending1Ever && savedEndings.ending2Ever && savedEndings.ending3Ever;
-  
-  if(dragonUnlocked) {
-    document.getElementById('dragonButton').style.display = 'block';
-  } else {
-    document.getElementById('dragonButton').style.display = 'none';
+  try {
+    const dragonBtn = document.getElementById('dragonButton');
+    if(!dragonBtn) return;
+    
+    const saved = localStorage.getItem('parkingGameEndings');
+    if(!saved) {
+      dragonBtn.style.display = 'none';
+      return;
+    }
+    
+    const data = JSON.parse(saved);
+    const dragonUnlocked = data.ending1Ever && data.ending2Ever && data.ending3Ever;
+    dragonBtn.style.display = dragonUnlocked ? 'block' : 'none';
+  } catch(e) {
+    console.log('Dragon button check error:', e);
+  }
+}
+
+// Background music control functions
+window.startBackgroundMusic = function() {
+  const music = document.getElementById('bgMusic');
+  if(music) {
+    music.volume = 0.3; // Set volume to 30% (adjust as needed)
+    music.play().catch(e => {
+      console.log('Music autoplay prevented by browser:', e);
+      // Music will start on first user interaction
+    });
+  }
+}
+
+window.stopBackgroundMusic = function()  {
+  const music = document.getElementById('bgMusic');
+  if(music) {
+    music.pause();
+    music.currentTime = 0;
+  }
+}
+
+window.toggleBackgroundMusic = function() {
+  const music = document.getElementById('bgMusic');
+  if(music) {
+    if(music.paused) {
+      music.play();
+    } else {
+      music.pause();
+    }
   }
 }
   
@@ -5775,5 +5863,11 @@ for (let idx = props.length - 1; idx >= 0; idx--){
   };
 })();
 </script>
+
+<!-- BACKGROUND MUSIC -->
+<audio id="bgMusic" loop>
+  <source src="lamentations.mp3" type="audio/mpeg">
+</audio>
+
 </body>
 </html>
