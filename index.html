@@ -2448,25 +2448,25 @@ class AngryVehicle {
   ]; // Total = 120 coins
   
   function spawnCoins(levelIdx) {
-    coins = [];
-    const lot = lotMemo;
-    
-    // Get exact number of coins for this level (0-indexed)
-    const numCoins = levelIdx < 50 ? COINS_PER_LEVEL[levelIdx] : 0;
-    totalCoinsSpawned += numCoins; // Track total coins spawned
-    
-    for(let i = 0; i < numCoins; i++) {
-      const x = lot.x + rnd(60, lot.w - 60);
-      const y = lot.y + rnd(60, lot.h - 60);
-      coins.push({
-        x: x,
-        y: y,
-        r: 12,
-        collected: false,
-        floatOffset: Math.random() * Math.PI * 2 // For animation
-      });
-    }
+  coins = [];
+  const lot = lotMemo;
+  
+  // Get exact number of coins for this level (0-indexed)
+  const numCoins = levelIdx < 50 ? COINS_PER_LEVEL[levelIdx] : 0;
+  // DON'T add to totalCoinsSpawned here - only count when level completes
+  
+  for(let i = 0; i < numCoins; i++) {
+    const x = lot.x + rnd(60, lot.w - 60);
+    const y = lot.y + rnd(60, lot.h - 60);
+    coins.push({
+      x: x,
+      y: y,
+      r: 12,
+      collected: false,
+      floatOffset: Math.random() * Math.PI * 2 // For animation
+    });
   }
+}
   
   function collectCoin(coin) {
     if(coin.collected) return;
@@ -2918,17 +2918,24 @@ for(let k=0;k<6;k++)
     }
 
     const {prog,need}=evaluateRule(currentRule);
-    if(prog>=need){
-      // Level complete! Stop the timer to prevent timeout during victory delay
-      gameOver = true;
-      
-      // Check for perfect level
-      if(hitCount === 0) {
-        stats.perfectLevels++;
-      }
-      stats.levelsCompleted++;
-      saveStats();
-      checkAchievements();
+if(prog>=need){
+  // Level complete! Stop the timer to prevent timeout during victory delay
+  gameOver = true;
+  
+  // COUNT COINS ONLY WHEN LEVEL IS COMPLETED (not when spawned)
+  // This way, pressing R doesn't count coins against the player
+  if(levelIndex < 50) {
+    const numCoins = COINS_PER_LEVEL[levelIndex];
+    totalCoinsSpawned += numCoins;
+  }
+  
+  // Check for perfect level
+  if(hitCount === 0) {
+    stats.perfectLevels++;
+  }
+  stats.levelsCompleted++;
+  saveStats();
+  checkAchievements();
       
       // STORY SYSTEM: Generate and save word (only for levels 1-50)
       if(levelIndex < 50) {
