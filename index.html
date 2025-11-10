@@ -482,7 +482,7 @@
             <span>The Perfectionist's Tale</span>
           </div>
           <div class="ending-requirement">
-            <strong>Requirement:</strong> Complete all 50 levels with 0-2 hits per level (maximum)
+            <strong>Requirement:</strong> Complete all 50 levels with 0-3 hits per level (maximum)
           </div>
           <div class="ending-reward">
             ✨ Reward: Unlock the complete story! Discover the hidden narrative that unfolds with each perfect run.
@@ -776,7 +776,7 @@ ctx.imageSmoothingEnabled = true;
   
   function getWordForLevel(levelIndex, hits) {
     // Return the word from MASTER_STORY, and track if it should be unlocked
-    const isUnlocked = (hits <= 2); // Unlock if 0, 1, or 2 hits
+    const isUnlocked = (hits <= 3); // Unlock if 0, 1,2 or 3 hits
     
     if(isUnlocked) {
       perfectLevelWords[levelIndex] = true; // Mark this level as perfect
@@ -1145,7 +1145,7 @@ ctx.imageSmoothingEnabled = true;
   ];
 
   // ----- Level state & geometry
-  let levelIndex=0, spots=[], spawns=[], gridCols=0, gridRows=0;
+  let levelIndex=0, spots=[], spawns=[], gridCols=0, gridRows=0, gateSide='left';
   let boxes=[], mudZones=[], redSpots=[], moving=[], weatherParticles=[];
   let holes=[]; // Collapsing floor holes that kill player
   let fireHoles=[]; // Burning holes created by dragon fireballs
@@ -1393,76 +1393,60 @@ if (idx >= 4 && idx < 50) { // idx 4 == Level 5
 
     
     // DETERMINE GATE SIDE EARLY (needed for moving obstacles)
-    const gateSide = ['left','right','top','bottom'][rndi(0,3)];
+    // DETERMINE GATE SIDE EARLY (needed for moving obstacles)
+gateSide = ['left','right','top','bottom'][rndi(0,3)];
     
-    // MOVING OBSTACLES - scale for 50 levels (always present)
-    const baseMovers = 2 + Math.floor(idx * 0.2); // Level 5: 3, Level 25: 7, Level 50: 12
-    const normalMovers = Math.min(15, baseMovers + rndi(0, 2));
-    
-    // SHOOTING OBSTACLES - START FROM LEVEL 1 (for testing)
-    let shootingMovers = 0;
-    if(idx >= 13 && idx < 22) {
-      // Level 1=2 shooters (easy to see)
-      shootingMovers = 2;
-    } else if(idx >= 22) {
-      // After level 22, shooting obstacles can appear based on combo chance
-      const comboChance = idx >= 42 ? 0.80 : 0.45;
-      if(Math.random() < comboChance) {
-        shootingMovers = rndi(2, 4); // 2-4 shooters if combo active
-      }
-    }
-    
-    const totalMovers = normalMovers + shootingMovers;
-    let shootersCreated = 0;
-    
-    for(let i=0;i<totalMovers;i++){
-      const shouldShoot = shootersCreated < shootingMovers;
-      const type = shouldShoot ? 'car' : (Math.random()>.5 ? 'pedestrian' : 'car');
-      if(shouldShoot && type === 'car') shootersCreated++;
-      
-      const w = type==='car'?40:10, h=type==='car'?20:10;
-      let x, y, vx, vy;
-      
-      // Player starts at approximately x=80, y=H/2 (middle-left)
-      const PLAYER_START_X = 80;
-      const PLAYER_START_Y = H/2;
-      const SAFE_ZONE = 120; // Don't spawn obstacles within 120px of player start
-      
-      // Choose a random side that is NOT the gate side
-      const sides = ['left', 'right', 'top', 'bottom'].filter(s => s !== gateSide);
-      const side = sides[rndi(0, sides.length-1)];
-      
-      if(side === 'left'){ // from left
-        x = -50; 
-        // Avoid spawning near player's Y position
-        do {
-          y = lot.y + rnd(30, lot.h-30);
-        } while(Math.abs(y - PLAYER_START_Y) < SAFE_ZONE);
-        vx = rnd(50,100); vy = 0;
-      } else if(side === 'right'){ // from right
-        x = W+50; 
-        // Can spawn anywhere on right since player starts on left
-        y = lot.y + rnd(30, lot.h-30);
-        vx = -rnd(50,100); vy = 0;
-      } else if(side === 'top'){ // from top
-        // Avoid spawning near player's X position
-        do {
-          x = lot.x + rnd(30, lot.w-30);
-        } while(Math.abs(x - PLAYER_START_X) < SAFE_ZONE);
-        y = -50;
-        vx = 0; vy = rnd(50,100);
-      } else { // from bottom
-        // Avoid spawning near player's X position
-        do {
-          x = lot.x + rnd(30, lot.w-30);
-        } while(Math.abs(x - PLAYER_START_X) < SAFE_ZONE);
-        y = H+50;
-        vx = 0; vy = -rnd(50,100);
-      }
-      
-      const canShoot = shouldShoot && type === 'car';
-      moving.push({x,y,w,h,vx,vy,type,canShoot,shootCooldown:0});
-    }
+// MOVING OBSTACLES - scale for 50 levels (always present)
+const baseMovers = 2 + Math.floor(idx * 0.2); // Level 5: 3, Level 25: 7, Level 50: 12
+const normalMovers = Math.min(15, baseMovers + rndi(0, 2));
+
+// SHOOTING OBSTACLES - START FROM LEVEL 1 (for testing)
+let shootingMovers = 0;
+if(idx >= 13 && idx < 22) {
+  shootingMovers = 2;
+} else if(idx >= 22) {
+  const comboChance = idx >= 42 ? 0.80 : 0.45;
+  if(Math.random() < comboChance) {
+    shootingMovers = rndi(2, 4);
+  }
+}
+
+const totalMovers = normalMovers + shootingMovers;
+let shootersCreated = 0;
+
+for(let i=0;i<totalMovers;i++){
+  const shouldShoot = shootersCreated < shootingMovers;
+  const type = shouldShoot ? 'car' : (Math.random()>.5 ? 'pedestrian' : 'car');
+  if(shouldShoot && type === 'car') shootersCreated++;
+  
+  const w = type==='car'?40:10, h=type==='car'?20:10;
+  let x, y, vx, vy;
+  
+  // Choose a random side that is NOT the gate side
+  const sides = ['left', 'right', 'top', 'bottom'].filter(s => s !== gateSide);
+  const side = sides[rndi(0, sides.length-1)];
+  
+  if(side === 'left'){ // from left
+    x = -50; 
+    y = lot.y + rnd(30, lot.h-30);
+    vx = rnd(50,100); vy = 0;
+  } else if(side === 'right'){ // from right
+    x = W+50; 
+    y = lot.y + rnd(30, lot.h-30);
+    vx = -rnd(50,100); vy = 0;
+  } else if(side === 'top'){ // from top
+    x = lot.x + rnd(30, lot.w-30);
+    y = -50;
+    vx = 0; vy = rnd(50,100);
+  } else { // from bottom
+    x = lot.x + rnd(30, lot.w-30);
+    y = H+50;
+    vx = 0; vy = -rnd(50,100);
+  }
+  
+  const canShoot = shouldShoot && type === 'car';
+  moving.push({x,y,w,h,vx,vy,type,canShoot,shootCooldown:0});
+}
   // ----- EXTRA PROPS: bars/fence, lamps, islands, bumps, cones, trees
 props.length = 0;
 const addProp = p => props.push(p);
@@ -3051,7 +3035,7 @@ for(let k=0;k<6;k++)
           
           <div style="padding:16px;background:${hasUnlockedFullStory ? '#1a2a1a' : '#1a1a1a'};border:2px solid ${hasUnlockedFullStory ? '#9be676' : '#334'};border-radius:8px;margin-bottom:12px">
             <p style="margin:0;font-size:18px">${hasUnlockedFullStory ? '✅' : '❌'} <strong>Ending 2:</strong> Unlock Full Story</p>
-            <p style="margin:4px 0 0;font-size:14px;color:#cfd3da">Complete all 50 levels with 0-2 hits each</p>
+            <p style="margin:4px 0 0;font-size:14px;color:#cfd3da">Complete all 50 levels with 0-3 hits each</p>
             <p style="margin:8px 0 0;font-size:16px;color:${hasUnlockedFullStory ? '#9be676' : '#ff6b6b'}">${unlockedWords}/50 words unlocked</p>
           </div>
           
@@ -5268,38 +5252,45 @@ ctx.restore();
         const o=moving[i];
         if(o.x<-120 || o.x>W+120 || o.y<-120 || o.y>H+120){
           moving.splice(i,1);
-          // respawn another
-          const type = Math.random()>.5?'pedestrian':'car';
-          const canShoot = levelIndex >= 10 && type === 'car';
-          const w = type==='car'?40:10, h=type==='car'?20:10;
-          let x,y,vx,vy;
-          
-          // Player starts at approximately x=80, y=H/2
-          const PLAYER_START_X = 80;
-          const PLAYER_START_Y = H/2;
-          const SAFE_ZONE = 150;
-          
-          if(Math.random()>.5){ 
-            // Horizontal spawn
-            x=Math.random()>.5?-50:W+50; 
-            // Avoid player Y position if spawning from left
-            if(x < 0) {
-              do {
-                y=lotMemo.y+rnd(30,lotMemo.h-30);
-              } while(Math.abs(y - PLAYER_START_Y) < SAFE_ZONE);
-            } else {
-              y=lotMemo.y+rnd(30,lotMemo.h-30);
-            }
-            vx=(x<0?1:-1)*rnd(50,100); vy=0;
-          } else { 
-            // Vertical spawn - avoid player X position
-            do {
-              x=lotMemo.x+rnd(30,lotMemo.w-30);
-            } while(Math.abs(x - PLAYER_START_X) < SAFE_ZONE);
-            y=Math.random()>.5?-50:H+50; 
-            vx=0; vy=(y<0?1:-1)*rnd(50,100);
-          }
-          moving.push({x,y,w,h,vx,vy,type,canShoot,shootCooldown:rnd(0.5,2)});
+// respawn another
+const type = Math.random()>.5?'pedestrian':'car';
+const canShoot = levelIndex >= 10 && type === 'car';
+const w = type==='car'?40:10, h=type==='car'?20:10;
+let x,y,vx,vy;
+
+// Determine which sides are NOT the gate side
+const availableSides = [];
+if(gateSide !== 'left') availableSides.push('left');
+if(gateSide !== 'right') availableSides.push('right');
+if(gateSide !== 'top') availableSides.push('top');
+if(gateSide !== 'bottom') availableSides.push('bottom');
+
+// Pick a random side from available sides
+const respawnSide = availableSides[rndi(0, availableSides.length - 1)];
+
+if(respawnSide === 'left') {
+  x = -50;
+  y = lotMemo.y + rnd(30, lotMemo.h - 30);
+  vx = rnd(50, 100);
+  vy = 0;
+} else if(respawnSide === 'right') {
+  x = W + 50;
+  y = lotMemo.y + rnd(30, lotMemo.h - 30);
+  vx = -rnd(50, 100);
+  vy = 0;
+} else if(respawnSide === 'top') {
+  x = lotMemo.x + rnd(30, lotMemo.w - 30);
+  y = -50;
+  vx = 0;
+  vy = rnd(50, 100);
+} else { // bottom
+  x = lotMemo.x + rnd(30, lotMemo.w - 30);
+  y = H + 50;
+  vx = 0;
+  vy = -rnd(50, 100);
+}
+
+moving.push({x,y,w,h,vx,vy,type,canShoot,shootCooldown:rnd(0.5,2)});
         }
       }
 
