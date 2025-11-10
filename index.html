@@ -719,17 +719,21 @@ function startGame() {
 }
 
 // Check if dragon button should be visible - must be global
+// Check if dragon button should be visible - must be global
 function checkDragonButtonVisibility() {
-  const saved = localStorage.getItem('parkingGameEndings');
-  if(saved) {
-    const data = JSON.parse(saved);
-    const dragonUnlocked = data.ending1Ever && data.ending2Ever && data.ending3Ever;
-    
-    if(dragonUnlocked) {
-      document.getElementById('dragonButton').style.display = 'block';
-    } else {
-      document.getElementById('dragonButton').style.display = 'none';
+  try {
+    const saved = localStorage.getItem('parkingGameEndings');
+    if(saved) {
+      const data = JSON.parse(saved);
+      const dragonUnlocked = data.ending1Ever && data.ending2Ever && data.ending3Ever;
+      
+      const dragonBtn = document.getElementById('dragonButton');
+      if(dragonBtn) {
+        dragonBtn.style.display = dragonUnlocked ? 'block' : 'none';
+      }
     }
+  } catch(e) {
+    console.log('Could not check dragon button visibility:', e);
   }
 }
 
