@@ -74,15 +74,6 @@ Your progress is automatically saved in your browser's local storage. Progress i
 
 *(Add screenshots here after uploading)*
 
----
-
-## 🗺️ Roadmap
-
-### Version 1.1.0 (Planned)
-- [ ] 10 new bonus levels
-- [ ] Online leaderboard
-- [ ] New power-up: Time Freeze
-- [ ] Mobile touch controls
 
 ---
 
@@ -91,12 +82,6 @@ Your progress is automatically saved in your browser's local storage. Progress i
 Enjoying the game? Consider supporting future development!
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/harryM)
-
----
-
-## 📜 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
 
 ---
 
@@ -119,16 +104,3 @@ Check out my other projects on my [GitHub profile](https://github.com/chamitro)!
 **Last Updated:** October 2025  
 **Status:** ✅ Stable Release
 ```
-
----
-
-## 📋 **Quick Checklist:**
-```
-☐ Create repository "pixel-parking"
-☐ Upload pixel-parking-final.html as index.html
-☐ Enable GitHub Pages in Settings
-☐ Edit README.md with game description
-☐ Add your Ko-fi username to both README and game file
-☐ Wait 2 minutes for deployment
-☐ Visit https://chamitro.github.io/CarParkGame/
-☐ Share on social media!
