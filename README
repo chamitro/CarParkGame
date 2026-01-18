@@ -1,85 +1,97 @@
 # 🚗 Car Park Game
 
+[![Status](https://img.shields.io/badge/Status-✅%20Stable%20Release-emerald)](https://chamitro.github.io/CarParkGame/)
+[![Version](https://img.shields.io/badge/Version-v1.0.1-blue)](https://github.com/chamitro/CarParkGame)
+
 A precision parking puzzle game with 50 challenging levels, 3 unique endings, and a mysterious story to unlock!
 
-## 🎮 [Play Now!](https://chamitro.github.io/CarParkGame/)
+🎮 **[Play Car Park Game in your browser!](https://chamitro.github.io/CarParkGame/)**
+
+---
+
+## 📍 Table of Contents
+- [🎯 Game Features](#-game-features)
+- [🏆 Three Endings](#-three-endings)
+- [🎮 Controls](#-controls)
+- [💾 Save System](#-save-system)
+- [🛠️ Technical Details](#️-technical-details)
+- [📸 Screenshots](#-screenshots)
+- [☕ Support](#-support-development)
 
 ---
 
 ## 🎯 Game Features
 
-- **50 Unique Levels** across 6 different biomes
-- **3 Different Endings** based on your performance
-- **Dynamic Weather** - Rain, snow, fog, and clear skies
-- **Power-ups** - Shield, speed boost, time extension, and destruction gun
-- **Story Mode** - Unlock a mysterious narrative by playing perfectly
-- **Achievements** - 9 achievements to unlock
-- **Multiple Vehicle Types** - Cars, trucks, buses, and taxis
-- **Night Mode** - Special levels with headlight mechanics
+* **50 Unique Levels:** Traverse through 6 distinct biomes with escalating difficulty.
+* **Dynamic Weather:** Adapt your driving to rain, snow, fog, and clear conditions.
+* **Power-ups:** Utilize the Shield, Speed Boost, Time Extension, and the Destruction Gun.
+* **Multiple Vehicles:** Master the handling of Cars, Trucks, Buses, and Taxis.
+* **Night Mode:** Special high-intensity levels featuring headlight mechanics.
+* **Achievements:** 9 unique achievements to track your progress.
 
 ---
 
 ## 🏆 Three Endings
 
-### 📊 Ending 1: The Completion Master
-Complete all 50 levels
+Your performance determines how the story concludes. Can you unlock the secret bonus?
 
-### 📖 Ending 2: The Perfectionist's Tale  
-Complete all 50 levels with 0-1 hits per level (unlocks full story)
+1.  **📊 Ending 1: The Completion Master** — Complete all 50 levels.
+2.  **📖 Ending 2: The Perfectionist's Tale** — Complete all levels with 0-1 hits (Unlocks the full story).
+3.  **🪙 Ending 3: The Treasure Hunter** — Collect at least 84/120 coins (70% collection rate).
 
-### 🪙 Ending 3: The Treasure Hunter
-Collect at least 84 coins out of 120 total (70% collection rate)
-
-**🐉 Secret Bonus:** Unlock all 3 endings to discover the Dragon!
+> **🐉 Secret Bonus:** Unlock all 3 endings to discover the **Dragon**!
 
 ---
 
 ## 🎮 Controls
 
+
+
 | Key | Action |
-|-----|--------|
-| **← →** | Steer left/right |
+|:---:|---|
+| **← →** | Steer Left / Right |
 | **↑** | Accelerate |
-| **↓** | Brake/Reverse |
-| **Space** | Park vehicle |
-| **C** | Use power-up |
-| **R** | Restart level |
+| **↓** | Brake / Reverse |
+| **Space** | Finalize Parking Position |
+| **C** | Activate Power-up |
+| **R** | Quick Restart Level |
 
 ---
 
 ## 💾 Save System
 
-Your progress is automatically saved in your browser's local storage. Progress includes:
-- Highest level reached
-- Achievements unlocked
-- Story progression
-- Coins collected
-- Personal leaderboard
+The game utilizes **Local Storage** to automatically save your data. Your progress remains safe between sessions as long as you do not clear your browser's cache.
 
-⚠️ **Note:** Progress is stored locally. Clearing browser cache will reset your save.
+**Stored Data includes:**
+* Highest level reached & Achievements.
+* Story progression & total coins collected.
+* Personal leaderboard statistics.
 
 ---
 
 ## 🛠️ Technical Details
 
-- Pure vanilla JavaScript (no frameworks)
-- HTML5 Canvas rendering
-- Responsive design
-- No external dependencies
-- Music by Black Tapes
+* **Engine:** Pure vanilla JavaScript (No frameworks).
+* **Graphics:** HTML5 Canvas API for high-performance rendering.
+* **Dependencies:** 100% dependency-free.
+* **Music:** Original tracks by *Black Tapes*.
+* **UI/UX:** Fully responsive design for various screen sizes.
 
 ---
 
 ## 📸 Screenshots
 
-*(Add screenshots here after uploading)*
+| Level Select | Gameplay | Victory Screen |
+|:---:|:---:|:---:|
+| ![Level Select](https://via.placeholder.com/250x150?text=Level+Select) | ![Gameplay](https://via.placeholder.com/250x150?text=Gameplay) | ![Victory](https://via.placeholder.com/250x150?text=Victory) |
 
+*(Replace placeholders with actual image links from your `/assets` or `/screenshots` folder)*
 
 ---
 
 ## ☕ Support Development
 
-Enjoying the game? Consider supporting future development!
+Enjoying the game? Help support future levels and projects!
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/harryM)
 
@@ -87,20 +99,10 @@ Enjoying the game? Consider supporting future development!
 
 ## 👨‍💻 Developer
 
-Created by **chamitro**
+Developed with ❤️ by **chamitro**
 
 - GitHub: [@chamitro](https://github.com/chamitro)
-- Ko-fi: [Support Me](https://ko-fi.com/harryM)
+- Portfolio: [Browse my other projects](https://github.com/chamitro)
 
 ---
-
-## 🎮 Play More Games
-
-Check out my other projects on my [GitHub profile](https://github.com/chamitro)!
-
----
-
-**Version:** v1.0.1
-**Last Updated:** October 2025  
-**Status:** ✅ Stable Release
-```
+**Last Updated:** October 2025
